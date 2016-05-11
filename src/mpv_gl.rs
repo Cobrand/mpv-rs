@@ -1,3 +1,3 @@
 use mpv_gen::*;
-use mpv::*;
+use mpv_error::*;
 mod mpv_gl {}
