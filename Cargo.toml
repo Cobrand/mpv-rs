@@ -5,3 +5,4 @@ authors = ["Cobrand <cobrandw@gmail.com>","yamakaky"]
 
 [dependencies]
 log = "0.3"
+enum_primitive = "0.1.0"
