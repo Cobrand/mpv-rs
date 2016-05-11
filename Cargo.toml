@@ -1,0 +1,7 @@
+[package]
+name = "mpv"
+version = "0.0.1"
+authors = ["Cobrand <cobrandw@gmail.com>","yamakaky"]
+
+[dependencies]
+log = "0.3"
