@@ -83,7 +83,7 @@ pub type mpv_error = Enum_mpv_error;
 enum_from_primitive! {
 #[derive(Clone, Copy)]
 #[repr(u32)]
-pub enum Enum_mpv_format {
+pub enum MpvFormat {
     MPV_FORMAT_NONE = 0,
     MPV_FORMAT_STRING = 1,
     MPV_FORMAT_OSD_STRING = 2,
@@ -96,7 +96,7 @@ pub enum Enum_mpv_format {
     MPV_FORMAT_BYTE_ARRAY = 9,
 }
 }
-pub type mpv_format = Enum_mpv_format;
+pub type mpv_format = MpvFormat;
 #[repr(C)]
 #[derive(Copy)]
 pub struct Struct_mpv_node {
@@ -193,7 +193,7 @@ pub type mpv_byte_array = Struct_mpv_byte_array;
 enum_from_primitive! {
 #[derive(Clone, Copy)]
 #[repr(u32)]
-pub enum Enum_mpv_event_id {
+pub enum MpvEventId {
     MPV_EVENT_NONE = 0,
     MPV_EVENT_SHUTDOWN = 1,
     MPV_EVENT_LOG_MESSAGE = 2,
@@ -221,7 +221,7 @@ pub enum Enum_mpv_event_id {
     MPV_EVENT_QUEUE_OVERFLOW = 24,
 }
 }
-pub type mpv_event_id = Enum_mpv_event_id;
+pub type mpv_event_id = MpvEventId;
 #[repr(C)]
 #[derive(Copy)]
 pub struct Struct_mpv_event_property {
@@ -243,7 +243,7 @@ pub type mpv_event_property = Struct_mpv_event_property;
 enum_from_primitive! {
 #[derive(Clone, Copy)]
 #[repr(u32)]
-pub enum Enum_mpv_log_level {
+pub enum MpvLogLevel {
     MPV_LOG_LEVEL_NONE = 0,
     MPV_LOG_LEVEL_FATAL = 10,
     MPV_LOG_LEVEL_ERROR = 20,
@@ -254,7 +254,7 @@ pub enum Enum_mpv_log_level {
     MPV_LOG_LEVEL_TRACE = 70,
 }
 }
-pub type mpv_log_level = Enum_mpv_log_level;
+pub type mpv_log_level = MpvLogLevel;
 #[repr(C)]
 #[derive(Copy)]
 pub struct Struct_mpv_event_log_message {
@@ -277,7 +277,7 @@ pub type mpv_event_log_message = Struct_mpv_event_log_message;
 enum_from_primitive! {
 #[derive(Clone, Copy)]
 #[repr(u32)]
-pub enum Enum_mpv_end_file_reason {
+pub enum MpvEndFileReason {
     MPV_END_FILE_REASON_EOF = 0,
     MPV_END_FILE_REASON_STOP = 2,
     MPV_END_FILE_REASON_QUIT = 3,
@@ -285,7 +285,7 @@ pub enum Enum_mpv_end_file_reason {
     MPV_END_FILE_REASON_REDIRECT = 5,
 }
 }
-pub type mpv_end_file_reason = Enum_mpv_end_file_reason;
+pub type mpv_end_file_reason = MpvEndFileReason;
 #[repr(C)]
 #[derive(Copy)]
 pub struct Struct_mpv_event_end_file {
@@ -359,14 +359,14 @@ pub type mpv_event = Struct_mpv_event;
 #[derive(Clone, Copy)]
 #[repr(u32)]
 
-pub enum Enum_mpv_sub_api {
+pub enum MpvSubApi {
     MPV_SUB_API_OPENGL_CB = 1,
     ///
     /// Rust does not allow Enums with a single variant, hence we must add another value to the
     /// existing enum. Thus 'NOTHING' has no utility
     NOTHING,
 }
-pub type mpv_sub_api = Enum_mpv_sub_api;
+pub type mpv_sub_api = MpvSubApi;
 pub enum Struct_mpv_opengl_cb_context { }
 pub type mpv_opengl_cb_context = Struct_mpv_opengl_cb_context;
 pub type mpv_opengl_cb_update_fn =
