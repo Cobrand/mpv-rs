@@ -358,8 +358,12 @@ impl ::std::default::Default for Struct_mpv_event {
 pub type mpv_event = Struct_mpv_event;
 #[derive(Clone, Copy)]
 #[repr(u32)]
+
 pub enum Enum_mpv_sub_api {
     MPV_SUB_API_OPENGL_CB = 1,
+    ///
+    /// Rust does not allow Enums with a single variant, hence we must add another value to the
+    /// existing enum. Thus 'NOTHING' has no utility
     NOTHING,
 }
 pub type mpv_sub_api = Enum_mpv_sub_api;
