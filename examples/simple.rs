@@ -6,7 +6,7 @@ use std::env;
 use std::path::Path;
 
 fn simple_example(video_path: &Path) {
-    let mpv = mpv::mpv_handler::Mpv_handler::init().expect("Error while initializing MPV");
+    let mpv = mpv::MpvHandler::init().expect("Error while initializing MPV");
     if video_path.is_file() {
         let video_path = video_path.to_str().expect("Expected a string for Path, got None");
         mpv.command(&["loadfile", video_path as &str])

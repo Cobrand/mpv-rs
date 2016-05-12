@@ -3,20 +3,20 @@ use mpv_error::*;
 
 use std::{ffi, ptr};
 
-pub struct Mpv_handler {
+pub struct MpvHandler {
     handle: *mut mpv_handle,
 }
 
-impl Mpv_handler {
-    pub fn init() -> Result<Mpv_handler> {
+impl MpvHandler {
+    pub fn init() -> Result<MpvHandler> {
         let handle = unsafe { mpv_create() };
         if handle == ptr::null_mut() {
-            return Err(Enum_mpv_error::MPV_ERROR_NOMEM);
+            return Err(MpvError::MPV_ERROR_NOMEM);
         }
 
         let ret = unsafe { mpv_initialize(handle) };
 
-        ret_to_result(ret, Mpv_handler { handle: handle })
+        ret_to_result(ret, MpvHandler { handle: handle })
     }
 
     // // TODO: implement this
@@ -61,7 +61,7 @@ impl Mpv_handler {
     }
 }
 
-impl Drop for Mpv_handler {
+impl Drop for MpvHandler {
     fn drop(&mut self) {
         unsafe {
             mpv_terminate_destroy(self.handle);
