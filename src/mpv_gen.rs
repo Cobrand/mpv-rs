@@ -360,7 +360,7 @@ pub type mpv_event = Struct_mpv_event;
 #[repr(u32)]
 pub enum Enum_mpv_sub_api {
     MPV_SUB_API_OPENGL_CB = 1,
-    Pote,
+    NOTHING,
 }
 pub type mpv_sub_api = Enum_mpv_sub_api;
 pub enum Struct_mpv_opengl_cb_context { }
