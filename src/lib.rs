@@ -3,20 +3,21 @@ extern crate enum_primitive;
 extern crate num;
 
 mod mpv_error;
+mod mpv_enums;
 mod mpv_gen;
 mod mpv_handler;
 
 pub mod mpv_gl;
 pub use mpv_error::{MpvError,Result};
 pub use mpv_handler::*;
-
-pub use mpv_gen::{
+pub use mpv_enums::{
     MpvFormat,
     MpvEventId,
     MpvSubApi,
     MpvLogLevel,
     MpvEndFileReason
 };
+
 
 pub fn client_api_version() -> u64 {
     unsafe {
