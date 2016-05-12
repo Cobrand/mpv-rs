@@ -3,11 +3,11 @@ use std::{result, ffi, fmt};
 use num::FromPrimitive;
 
 use mpv_gen::mpv_error_string;
-pub use mpv_gen::mpv_error as Mpv_error;
+pub use mpv_gen::Enum_mpv_error as MpvError;
 
-pub type Result<T> = result::Result<T, Mpv_error>;
+pub type Result<T> = result::Result<T, MpvError>;
 
-impl Error for Mpv_error {
+impl Error for MpvError {
     fn description(&self) -> &str {
         let str_ptr = unsafe { mpv_error_string(*self as ::std::os::raw::c_int) };
         assert!(!str_ptr.is_null());
@@ -15,7 +15,7 @@ impl Error for Mpv_error {
     }
 }
 
-impl fmt::Display for Mpv_error {
+impl fmt::Display for MpvError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} ({:?})", self.description(), self)
     }
@@ -23,7 +23,7 @@ impl fmt::Display for Mpv_error {
 
 pub fn ret_to_result<T>(ret: i32, default: T) -> Result<T> {
     if ret < 0 {
-        Err(Mpv_error::from_i32(ret).unwrap())
+        Err(MpvError::from_i32(ret).unwrap())
     } else {
         Ok(default)
     }
