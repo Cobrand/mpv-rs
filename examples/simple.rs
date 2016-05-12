@@ -11,13 +11,18 @@ fn simple_example(video_path: &Path) {
         let video_path = video_path.to_str().expect("Expected a string for Path, got None");
         mpv.command(&["loadfile", video_path as &str])
            .expect("Error loading file");
-        loop {
-            while let Some(_) = mpv.wait_event() {
-                // do something with the events
-                // but it's kind of useless
-                // it's still necessary to empty the event pool
+        'main: loop {
+            while let Some(event) = mpv.wait_event() {
+                // even if you don't do anything with the events, it is still necessary to empty
+                // the event loop
+                println!("RECEIVED EVENT : {}", event.event_id.to_str());
+                match event.event_id {
+                    mpv::MpvEventId::MPV_EVENT_SHUTDOWN => {
+                        break 'main;
+                    }
+                    _ => {}
+                };
             }
-
         }
     } else {
         println!("A file is required; {} is not a valid file",

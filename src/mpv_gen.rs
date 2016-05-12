@@ -81,7 +81,7 @@ pub enum Enum_mpv_error {
 }
 pub type mpv_error = Enum_mpv_error;
 enum_from_primitive! {
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 #[repr(u32)]
 pub enum MpvFormat {
     MPV_FORMAT_NONE = 0,
@@ -191,7 +191,7 @@ impl ::std::default::Default for Struct_mpv_byte_array {
 }
 pub type mpv_byte_array = Struct_mpv_byte_array;
 enum_from_primitive! {
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 #[repr(u32)]
 pub enum MpvEventId {
     MPV_EVENT_NONE = 0,
