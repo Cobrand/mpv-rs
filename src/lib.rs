@@ -18,6 +18,8 @@ pub use mpv_enums::{
     MpvEndFileReason
 };
 
+/// Returns the MPV_CLIENT_API_VERSION the mpv source has been compiled with
+///
 
 pub fn client_api_version() -> u64 {
     unsafe {

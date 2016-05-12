@@ -1,4 +1,6 @@
-use mpv_gen::*;
+use mpv_gen::{mpv_command, mpv_wait_event, mpv_create, mpv_initialize, mpv_terminate_destroy,
+              mpv_handle, Struct_mpv_event};
+use mpv_enums::*;
 use mpv_error::*;
 
 use std::{ffi, ptr};

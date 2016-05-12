@@ -56,7 +56,7 @@ pub type mpv_handle = Struct_mpv_handle;
 enum_from_primitive! {
 #[derive(Clone, Copy, Debug)]
 #[repr(i32)]
-pub enum Enum_mpv_error {
+pub enum MpvError {
     MPV_ERROR_SUCCESS = 0,
     MPV_ERROR_EVENT_QUEUE_FULL = -1,
     MPV_ERROR_NOMEM = -2,
@@ -79,7 +79,6 @@ pub enum Enum_mpv_error {
     MPV_ERROR_NOT_IMPLEMENTED = -19,
 }
 }
-pub type mpv_error = Enum_mpv_error;
 enum_from_primitive! {
 #[derive(Clone, Copy, Debug)]
 #[repr(u32)]

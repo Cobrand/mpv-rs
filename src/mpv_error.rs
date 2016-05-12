@@ -3,7 +3,7 @@ use std::{result, ffi, fmt};
 use num::FromPrimitive;
 
 use mpv_gen::mpv_error_string;
-pub use mpv_gen::Enum_mpv_error as MpvError;
+pub use mpv_gen::MpvError;
 
 pub type Result<T> = result::Result<T, MpvError>;
 
