@@ -26,7 +26,7 @@ impl MpvHandler {
     //                           -> Result<OpenglContext> {
     //     OpenglContext::init(unsafe {
     //                             mpv_get_sub_api(self.handle,
-    //                                             Enum_mpv_sub_api::MPV_SUB_API_OPENGL_CB)
+    //                                             MpvSubApi::MPV_SUB_API_OPENGL_CB)
     //                         } as *mut mpv_opengl_cb_context,
     //                         get_proc_address,
     //                         get_proc_address_ctx)
@@ -55,7 +55,7 @@ impl MpvHandler {
             *ptr
         };
         match event.event_id {
-            Enum_mpv_event_id::MPV_EVENT_NONE => None,
+            MpvEventId::MPV_EVENT_NONE => None,
             _ => Some(event),
         }
     }
