@@ -11,10 +11,20 @@ pub struct MpvHandler {
     handle: *mut mpv_handle,
 }
 
-pub trait MpvFormat {
+pub trait MpvFormat : Sized {
+    fn call_with_mpv_internal_format<F : FnMut(MpvInternalFormat,*mut c_void)>(&self,f:F);
 
+    //fn return_with_mpv_internal_format<F : Fn(MpvInternalFormat,*mut c_void) -> Self>(&self,f:F);
 }
 
+impl MpvFormat for f64 {
+    fn call_with_mpv_internal_format<F : FnMut(MpvInternalFormat,*mut c_void)>(&self,mut f:F){
+        let format = MpvInternalFormat::MPV_FORMAT_DOUBLE;
+        let mut cpy : f64= *self;
+        let ptr = &mut cpy as *mut _ as *mut c_void;
+        f(format,ptr)
+    }
+}
 
 impl MpvHandler {
     pub fn init() -> Result<MpvHandler> {
@@ -42,7 +52,16 @@ impl MpvHandler {
     // }
 
     pub fn set_property<T : MpvFormat>(&self, property: &str, value : T) -> Result<()>{
-        unimplemented!()
+        let mut ret = 0 ;
+        value.call_with_mpv_internal_format(|format:MpvInternalFormat,ptr:*mut c_void|{
+            ret = unsafe {
+                mpv_set_property(self.handle,
+                                 ffi::CString::new(property).unwrap().as_ptr(),
+                                 format,
+                                 ptr)
+            }
+        });
+        ret_to_result(0,())
     }
 
     pub fn get_property<T : MpvFormat>(&self, property: &str) -> T {
