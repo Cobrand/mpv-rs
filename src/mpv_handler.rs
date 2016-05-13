@@ -11,7 +11,7 @@ pub struct MpvHandler {
     handle: *mut mpv_handle,
 }
 
-pub trait MpvFormat : Sized {
+pub trait MpvFormat {
     fn call_with_mpv_internal_format<F : FnMut(MpvInternalFormat,*mut c_void)>(&self,f:F);
 
     //fn return_with_mpv_internal_format<F : Fn(MpvInternalFormat,*mut c_void) -> Self>(&self,f:F);
@@ -61,7 +61,7 @@ impl MpvHandler {
                                  ptr)
             }
         });
-        ret_to_result(0,())
+        ret_to_result(ret,())
     }
 
     pub fn get_property<T : MpvFormat>(&self, property: &str) -> T {

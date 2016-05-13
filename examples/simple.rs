@@ -11,6 +11,7 @@ fn simple_example(video_path: &Path) {
         let video_path = video_path.to_str().expect("Expected a string for Path, got None");
         mpv.command(&["loadfile", video_path as &str])
            .expect("Error loading file");
+        mpv.set_property("speed",1.0);
         'main: loop {
             while let Some(event) = mpv.wait_event() {
                 // even if you don't do anything with the events, it is still necessary to empty
