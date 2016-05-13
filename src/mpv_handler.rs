@@ -1,8 +1,9 @@
 use mpv_gen::{mpv_command, mpv_wait_event, mpv_create, mpv_initialize, mpv_terminate_destroy,
-              mpv_handle, Struct_mpv_event};
+              mpv_handle, Struct_mpv_event, mpv_set_property, mpv_get_property, MpvFormat as MpvInternalFormat};
 use mpv_enums::*;
 use mpv_error::*;
 
+use std::os::raw::c_void;
 use std::{ffi, ptr};
 
 pub struct MpvHandler {
@@ -33,6 +34,21 @@ impl MpvHandler {
     //                         get_proc_address,
     //                         get_proc_address_ctx)
     // }
+
+    pub fn set_option_float(&self,property: &str ,value :f64){
+        let mut value = value ;
+        let ptr = &mut value as *mut _ as *mut c_void;
+        unsafe {
+            mpv_set_property(self.handle,
+                             ffi::CString::new(property).unwrap().as_ptr(),
+                             MpvInternalFormat::MPV_FORMAT_DOUBLE,
+                             ptr);
+        }
+    }
+
+    pub fn set_option_flag(&self,property: &str, value :bool){
+        unimplemented!();
+    }
 
     pub fn command(&self, command: &[&str]) -> Result<()> {
         let command_cstring: Vec<_> = command.iter()
