@@ -26,6 +26,25 @@ impl MpvFormat for f64 {
     }
 }
 
+impl MpvFormat for i64 {
+    fn call_with_mpv_internal_format<F : FnMut(MpvInternalFormat,*mut c_void)>(&self,mut f:F){
+        let format = MpvInternalFormat::MPV_FORMAT_INT64;
+        let mut cpy : i64= *self;
+        let ptr = &mut cpy as *mut _ as *mut c_void;
+        f(format,ptr)
+    }
+}
+
+impl<'a> MpvFormat for &'a str {
+    fn call_with_mpv_internal_format<F : FnMut(MpvInternalFormat,*mut c_void)>(&self,mut f:F){
+        let format = MpvInternalFormat::MPV_FORMAT_STRING;
+        let mut string = ffi::CString::new(*self).unwrap();
+        println!("SENT PARAMETER {:?}",string);
+        let ptr = string.as_ptr() as *mut c_void;
+        f(format,ptr)
+    }
+}
+
 impl MpvHandler {
     pub fn init() -> Result<MpvHandler> {
         let handle = unsafe { mpv_create() };
