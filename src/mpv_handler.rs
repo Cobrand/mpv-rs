@@ -4,11 +4,17 @@ use mpv_enums::*;
 use mpv_error::*;
 
 use std::os::raw::c_void;
+use std::ffi::CStr;
 use std::{ffi, ptr};
 
 pub struct MpvHandler {
     handle: *mut mpv_handle,
 }
+
+pub trait MpvFormat {
+
+}
+
 
 impl MpvHandler {
     pub fn init() -> Result<MpvHandler> {
@@ -35,19 +41,16 @@ impl MpvHandler {
     //                         get_proc_address_ctx)
     // }
 
-    pub fn set_option_float(&self,property: &str ,value :f64){
-        let mut value = value ;
-        let ptr = &mut value as *mut _ as *mut c_void;
-        unsafe {
-            mpv_set_property(self.handle,
-                             ffi::CString::new(property).unwrap().as_ptr(),
-                             MpvInternalFormat::MPV_FORMAT_DOUBLE,
-                             ptr);
-        }
+    pub fn set_property<T : MpvFormat>(&self, property: &str, value : T) -> Result<()>{
+        unimplemented!()
     }
 
-    pub fn set_option_flag(&self,property: &str, value :bool){
-        unimplemented!();
+    pub fn get_property<T : MpvFormat>(&self, property: &str) -> T {
+        unimplemented!()
+    }
+
+    pub fn set_option<T : MpvFormat>(&self, property: &str, option: T) -> Result<()> {
+        unimplemented!()
     }
 
     pub fn command(&self, command: &[&str]) -> Result<()> {

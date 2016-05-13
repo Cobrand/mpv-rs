@@ -11,7 +11,6 @@ pub mod mpv_gl;
 pub use mpv_error::{MpvError,Result};
 pub use mpv_handler::*;
 pub use mpv_enums::{
-    MpvFormat,
     MpvEventId,
     MpvSubApi,
     MpvLogLevel,

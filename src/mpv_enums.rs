@@ -2,20 +2,6 @@ use std::{ffi, fmt};
 
 use mpv_gen::mpv_event_name;
 pub use mpv_gen::{MpvEventId, MpvSubApi, MpvLogLevel, MpvEndFileReason};
-use mpv_gen::MpvFormat as MpvInternalFormat;
-
-pub enum MpvFormat<'a> {
-    None,
-    String(&'a str),
-    OSDString(&'a str),
-    Flag(bool),
-    Int(i64),
-    Double(f64),
-    Node,
-    NodeArray,
-    NodeMap,
-    ByteArray
-}
 
 impl MpvEventId {
     pub fn to_str(&self) -> &str {
