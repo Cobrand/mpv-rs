@@ -1,5 +1,6 @@
 use mpv_gen::{mpv_command, mpv_wait_event, mpv_create, mpv_initialize, mpv_terminate_destroy,
-              mpv_handle, Struct_mpv_event, mpv_set_property, mpv_get_property, MpvFormat as MpvInternalFormat};
+              mpv_handle, mpv_set_option, Struct_mpv_event, mpv_set_property, mpv_get_property,
+              MpvFormat as MpvInternalFormat};
 use mpv_enums::*;
 use mpv_error::*;
 
@@ -135,7 +136,17 @@ impl MpvHandler {
     }
 
     pub fn set_option<T : MpvFormat>(&self, property: &str, option: T) -> Result<()> {
-        unimplemented!()
+        let mut ret = 0 ;
+        let format = T::get_mpv_format();
+        option.call_as_c_void(|ptr:*mut c_void|{
+            ret = unsafe {
+                mpv_set_option(self.handle,
+                                 ffi::CString::new(property).unwrap().as_ptr(),
+                                 format,
+                                 ptr)
+            }
+        });
+        ret_to_result(ret,())
     }
 
     pub fn command(&self, command: &[&str]) -> Result<()> {

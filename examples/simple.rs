@@ -11,10 +11,13 @@ fn simple_example(video_path: &Path) {
         mpv.command(&["loadfile", video_path as &str])
            .expect("Error loading file");
 
+        // set option "sid" to "no" (no subtitles)
+        mpv.set_option("sid","no").unwrap();
+
         // loop twice, send parameter as a string
         mpv.set_property("loop","2").unwrap();
 
-        // set speed to 100%, send parameter as a
+        // set speed to 100%, send parameter as a f64
         mpv.set_property("speed",1.0).unwrap();
 
         // get how many loops are playing as an i64
