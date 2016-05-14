@@ -1,5 +1,7 @@
-use mpv_gen::{mpv_command, mpv_wait_event, mpv_create, mpv_initialize, mpv_terminate_destroy,
-              mpv_handle, mpv_set_option, Struct_mpv_event, mpv_set_property, mpv_get_property,
+use mpv_gen::{mpv_command, mpv_command_async, mpv_wait_event, mpv_create, mpv_initialize,
+              mpv_terminate_destroy, mpv_handle, mpv_set_option,
+              Struct_mpv_event, mpv_set_property, mpv_set_property_async, mpv_get_property,
+              mpv_get_property_async,
               MpvFormat as MpvInternalFormat};
 use mpv_enums::*;
 use mpv_error::*;
@@ -110,6 +112,8 @@ impl<'a> MpvFormat for &'a str {
 }
 
 impl MpvHandler {
+
+    /// Creates a mpv handler
     pub fn init() -> Result<MpvHandler> {
         let handle = unsafe { mpv_create() };
         if handle == ptr::null_mut() {
@@ -134,6 +138,7 @@ impl MpvHandler {
     //                         get_proc_address_ctx)
     // }
 
+    /// Set a property synchronously
     pub fn set_property<T : MpvFormat>(&self, property: &str, value : T) -> Result<()>{
         let mut ret = 0 ;
         let format = T::get_mpv_format();
@@ -148,6 +153,7 @@ impl MpvHandler {
         ret_to_result(ret,())
     }
 
+    /// Get a property synchronously
     pub fn get_property<T : MpvFormat>(&self, property: &str) -> Result<T> {
         let mut ret = 0 ;
         let mut result : T ;
@@ -163,7 +169,15 @@ impl MpvHandler {
         ret_to_result(ret,result)
     }
 
-    /// Set an option synchronously
+    ///
+    /// Set an option. Note that you can't normally set options during runtime.
+    ///
+    /// Changing options at runtime does not always work. For some options, attempts
+    /// to change them simply fails. Many other options may require reloading the
+    /// file for changes to take effect. In general, you should prefer calling
+    /// mpv.set_property() to change settings during playback, because the property
+    /// mechanism guarantees that changes take effect immediately.
+    ///
     pub fn set_option<T : MpvFormat>(&self, property: &str, option: T) -> Result<()> {
         let mut ret = 0 ;
         let format = T::get_mpv_format();
@@ -178,9 +192,7 @@ impl MpvHandler {
         ret_to_result(ret,())
     }
 
-    /// Send a command asynchronously
-    ///
-    /// There is no command to send a command synchronously
+    /// Send a command synchronously
     pub fn command(&self, command: &[&str]) -> Result<()> {
         let command_cstring: Vec<_> = command.iter()
                                              .map(|item| ffi::CString::new(*item).unwrap())
@@ -191,6 +203,21 @@ impl MpvHandler {
         command_pointers.push(ptr::null());
 
         let ret = unsafe { mpv_command(self.handle, command_pointers.as_mut_ptr()) };
+
+        ret_to_result(ret, ())
+    }
+
+    /// Send a command asynchronously
+    pub fn command_async(&self, command: &[&str], userdata :u64) -> Result<()> {
+        let command_cstring: Vec<_> = command.iter()
+                                             .map(|item| ffi::CString::new(*item).unwrap())
+                                             .collect();
+        let mut command_pointers: Vec<_> = command_cstring.iter()
+                                                          .map(|item| item.as_ptr())
+                                                          .collect();
+        command_pointers.push(ptr::null());
+
+        let ret = unsafe { mpv_command_async(self.handle, userdata,command_pointers.as_mut_ptr())};
 
         ret_to_result(ret, ())
     }
