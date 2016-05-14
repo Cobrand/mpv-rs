@@ -25,7 +25,7 @@ fn simple_example(video_path: &Path) {
         println!("NUMBER OF LOOPS IS {}",n_loop);
 
         'main: loop {
-            while let Some(event) = mpv.wait_event() {
+            while let Some(event) = mpv.wait_event(0.0) {
                 // even if you don't do anything with the events, it is still necessary to empty
                 // the event loop
                 println!("RECEIVED EVENT : {:?}", event.event_id.to_str());

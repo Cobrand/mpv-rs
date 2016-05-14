@@ -163,6 +163,7 @@ impl MpvHandler {
         ret_to_result(ret,result)
     }
 
+    /// Set an option synchronously
     pub fn set_option<T : MpvFormat>(&self, property: &str, option: T) -> Result<()> {
         let mut ret = 0 ;
         let format = T::get_mpv_format();
@@ -177,6 +178,9 @@ impl MpvHandler {
         ret_to_result(ret,())
     }
 
+    /// Send a command asynchronously
+    ///
+    /// There is no command to send a command synchronously
     pub fn command(&self, command: &[&str]) -> Result<()> {
         let command_cstring: Vec<_> = command.iter()
                                              .map(|item| ffi::CString::new(*item).unwrap())
@@ -191,9 +195,25 @@ impl MpvHandler {
         ret_to_result(ret, ())
     }
 
-    pub fn wait_event(&self) -> Option<Struct_mpv_event> {
+    /// Returns an Event if there is an Event available. Returns None if the event pool is empty.
+    ///
+    /// It is still necessary to empty the event pool even if you don't use the events
+    /// Unexpected behaviour can happen
+    ///
+    /// # Example
+    /// ```
+    /// let mpv = mpv::MpvHandler::init().expect("Error while initializing MPV");
+    /// while let Some(event) = mpv.wait_event(0.0) {
+    ///     println!("RECEIVED EVENT : {:?}", event.event_id.to_str());
+    ///     // do something else with event
+    /// }
+    /// ```
+    ///
+    ///
+
+    pub fn wait_event(&self,timeout:f64) -> Option<Struct_mpv_event> {
         let event = unsafe {
-            let ptr = mpv_wait_event(self.handle, 0.0);
+            let ptr = mpv_wait_event(self.handle, timeout);
             if ptr.is_null() {
                 panic!("Unexpected null ptr from mpv_wait_event");
             }
