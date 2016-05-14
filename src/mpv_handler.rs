@@ -58,6 +58,34 @@ impl MpvFormat for i64 {
     }
 }
 
+impl MpvFormat for bool {
+    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
+        let format = Self::get_mpv_format();
+        let mut cpy : ::std::os::raw::c_int = if (*self == true) {
+            1
+        } else {
+            0
+        } ;
+        let pointer = &mut cpy as *mut _ as *mut c_void;
+        f(pointer)
+    }
+
+    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> bool {
+        let mut temp_int = ::std::os::raw::c_int::default() ;
+        let pointer = &mut temp_int as *mut _ as *mut c_void;
+        f(pointer);
+        match temp_int {
+            0 => false,
+            1 => true,
+            _ => unreachable!()
+        }
+    }
+
+    fn get_mpv_format() -> MpvInternalFormat {
+        MpvInternalFormat::MPV_FORMAT_FLAG
+    }
+}
+
 impl<'a> MpvFormat for &'a str {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
         let format = Self::get_mpv_format();
