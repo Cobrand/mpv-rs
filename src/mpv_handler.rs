@@ -6,6 +6,7 @@ use mpv_error::*;
 use std::os::raw::{c_void,c_char};
 use std::ffi::CStr;
 use std::{ffi, ptr};
+use std::mem;
 
 pub struct MpvHandler {
     handle: *mut mpv_handle,
@@ -60,23 +61,18 @@ impl<'a> MpvFormat for &'a str {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
         let format = Self::get_mpv_format();
         let mut string = ffi::CString::new(*self).unwrap();
-        println!("SENT PARAMETER {:?}",string);
-        let ptr = string.as_ptr() as *mut c_void;
-        let result = f(ptr);
-        result
+        let ptr = string.as_ptr();
+        f(unsafe {mem::transmute(&ptr)})
     }
 
     fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> &'a str {
         let char_ptr : *mut c_char = ptr::null_mut() as *mut c_char;
-        f((char_ptr) as *mut c_void);
-        let string ;
+        f(unsafe {mem::transmute(&char_ptr)});
         unsafe {
-            string = CStr::from_ptr(char_ptr)
-                .to_str()
-                .unwrap();
+            CStr::from_ptr(char_ptr)
+                 .to_str()
+                 .unwrap()
         }
-        println!("STRING {:?}",string);
-        string
     }
 
     fn get_mpv_format() -> MpvInternalFormat {

@@ -11,15 +11,15 @@ fn simple_example(video_path: &Path) {
         mpv.command(&["loadfile", video_path as &str])
            .expect("Error loading file");
 
-        // loop twice
-        mpv.set_property("loop",2).unwrap();
+        // loop twice, send parameter as a string
+        mpv.set_property("loop","2").unwrap();
 
-        // set speed to 100%
+        // set speed to 100%, send parameter as a
         mpv.set_property("speed",1.0).unwrap();
 
-        // get current play speed as a f64
-        let speed : &str = mpv.get_property("loop").unwrap() ;
-        println!("CURRENT SPEED IS {}",speed);
+        // get how many loops are playing as an i64
+        let n_loop : i64 = mpv.get_property("loop").unwrap() ;
+        println!("NUMBER OF LOOPS IS {}",n_loop);
 
         'main: loop {
             while let Some(event) = mpv.wait_event() {
