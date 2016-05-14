@@ -18,9 +18,9 @@ fn simple_example(video_path: &Path) {
         mpv.set_property("speed",1.0).unwrap();
 
         // get current play speed as a f64
-        let speed : f64 = mpv.get_property("speed").unwrap() ;
+        let speed : &str = mpv.get_property("loop").unwrap() ;
         println!("CURRENT SPEED IS {}",speed);
-        
+
         'main: loop {
             while let Some(event) = mpv.wait_event() {
                 // even if you don't do anything with the events, it is still necessary to empty

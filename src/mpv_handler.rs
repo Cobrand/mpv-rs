@@ -56,6 +56,34 @@ impl MpvFormat for i64 {
     }
 }
 
+impl<'a> MpvFormat for &'a str {
+    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
+        let format = Self::get_mpv_format();
+        let mut string = ffi::CString::new(*self).unwrap();
+        println!("SENT PARAMETER {:?}",string);
+        let ptr = string.as_ptr() as *mut c_void;
+        let result = f(ptr);
+        result
+    }
+
+    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> &'a str {
+        let char_ptr : *mut c_char = ptr::null_mut() as *mut c_char;
+        f((char_ptr) as *mut c_void);
+        let string ;
+        unsafe {
+            string = CStr::from_ptr(char_ptr)
+                .to_str()
+                .unwrap();
+        }
+        println!("STRING {:?}",string);
+        string
+    }
+
+    fn get_mpv_format() -> MpvInternalFormat {
+        MpvInternalFormat::MPV_FORMAT_STRING
+    }
+}
+
 impl MpvHandler {
     pub fn init() -> Result<MpvHandler> {
         let handle = unsafe { mpv_create() };
