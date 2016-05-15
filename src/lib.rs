@@ -19,8 +19,9 @@ pub use mpv_enums::{
 /// Returns the MPV_CLIENT_API_VERSION the mpv source has been compiled with
 ///
 
-pub fn client_api_version() -> u64 {
-    unsafe {
+pub fn client_api_version() -> u32 {
+    let api_version : ::std::os::raw::c_ulong = unsafe {
         mpv_gen::mpv_client_api_version()
-    }
+    };
+    api_version as u32
 }

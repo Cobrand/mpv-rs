@@ -269,7 +269,7 @@ impl MpvHandler {
                                                           .map(|item| item.as_ptr())
                                                           .collect();
         command_pointers.push(ptr::null());
-
+        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
         let ret = unsafe { mpv_command_async(self.handle, userdata,command_pointers.as_mut_ptr())};
 
         ret_to_result(ret, ())
