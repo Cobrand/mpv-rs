@@ -52,10 +52,8 @@ fn sdl_example(video_path: &Path) {
         renderer.window()
                 .expect("Failed to extract window from displayer")
                 .gl_set_context_to_current();
-        let mpv = mpv::MpvHandler::init().expect("Error while initializing MPV");
-
         let ptr = &mut video_subsystem as *mut _ as *mut c_void;
-        let opengl_context = mpv.get_opengl_context(Some(get_proc_address), ptr).unwrap();
+        let mpv = mpv::MpvHandler::init_with_gl(Some(get_proc_address), ptr).expect("Error while initializing MPV");
         mpv.set_option("vo", "opengl-cb").expect("Error setting vo option to opengl-cb");
 
         let video_path = video_path.to_str().expect("Expected a string for Path, got None");
@@ -91,7 +89,7 @@ fn sdl_example(video_path: &Path) {
                 };
             }
             let (width, height) = renderer.window().unwrap().size();
-            opengl_context.draw(0, width as i32, -(height as i32)).expect("Failed to draw ");
+            mpv.draw(0, width as i32, -(height as i32)).expect("Failed to draw ");
             renderer.window().unwrap().gl_swap_window();
         }
     }else{

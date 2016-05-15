@@ -6,7 +6,6 @@ mod mpv_error;
 mod mpv_enums;
 mod mpv_gen;
 mod mpv_handler;
-mod mpv_gl;
 
 pub use mpv_error::{MpvError,Result};
 pub use mpv_handler::*;
@@ -16,7 +15,6 @@ pub use mpv_enums::{
     MpvLogLevel,
     MpvEndFileReason
 };
-pub use mpv_gl::* ;
 
 /// Returns the MPV_CLIENT_API_VERSION the mpv source has been compiled with
 ///
