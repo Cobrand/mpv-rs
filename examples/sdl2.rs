@@ -53,10 +53,10 @@ fn sdl_example(video_path: &Path) {
                 .expect("Failed to extract window from displayer")
                 .gl_set_context_to_current();
         let ptr = &mut video_subsystem as *mut _ as *mut c_void;
-        let mpv = mpv::MpvHandler::init_with_gl(Some(get_proc_address), ptr).expect("Error while initializing MPV");
+        let mut mpv = mpv::MpvHandler::create().expect("Error while creating MPV");
+        mpv.init_with_gl(Some(get_proc_address), ptr).expect("Error while initializing MPV");
 
         let video_path = video_path.to_str().expect("Expected a string for Path, got None");
-
         mpv.command(&["loadfile", video_path as &str])
            .expect("Error loading file");
 

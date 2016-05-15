@@ -119,41 +119,44 @@ impl MpvHandler {
     /// Creates a mpv handler
     ///
     /// It will create a new mpv player in another window
-    pub fn init() -> Result<MpvHandler> {
+
+    pub fn create() -> Result<MpvHandler> {
         let handle = unsafe { mpv_create() };
         if handle == ptr::null_mut() {
             return Err(MpvError::MPV_ERROR_NOMEM);
         }
-
-        let ret = unsafe { mpv_initialize(handle) };
-
-        ret_to_result(ret, MpvHandler { gl_context: None,handle: handle })
+        ret_to_result(0,MpvHandler { gl_context: None,handle: handle })
     }
 
-    pub fn init_with_gl(get_proc_address: mpv_opengl_cb_get_proc_address_fn,
+    pub fn init(&self) -> Result<()> {
+        let ret = unsafe { mpv_initialize(self.handle) };
+        ret_to_result(ret, ())
+    }
+
+    pub fn init_with_gl(&mut self,
+                        get_proc_address: mpv_opengl_cb_get_proc_address_fn,
                         get_proc_address_ctx: *mut ::std::os::raw::c_void)
-                        -> Result<MpvHandler> {
-        assert!(!get_proc_address_ctx.is_null());
-        let handle = unsafe { mpv_create() };
-        if handle == ptr::null_mut() {
-            return Err(MpvError::MPV_ERROR_NOMEM);
+                        -> Result<()> {
+        self.set_option("vo", "opengl-cb").expect("Error setting vo option to opengl-cb");
+        let result = self.init();
+        if (result.is_ok()){
+            let opengl_ctx = unsafe {
+                mpv_get_sub_api(self.handle,
+                                MpvSubApi::MPV_SUB_API_OPENGL_CB)
+            } as *mut mpv_opengl_cb_context ;
+            let ret = unsafe {
+                mpv_opengl_cb_init_gl(opengl_ctx, ptr::null(), get_proc_address, get_proc_address_ctx)
+            };
+            self.gl_context = Some(opengl_ctx) ;
+            // Actually using the opengl_cb state has to be explicitly requested.
+            // Otherwise, mpv will create a separate platform window.
+
+
+            ret_to_result(ret,())
+        } else {
+            Err(result.err().unwrap())
         }
-        let ret = unsafe { mpv_initialize(handle) };
-        let opengl_ctx = unsafe {
-            mpv_get_sub_api(handle,
-                            MpvSubApi::MPV_SUB_API_OPENGL_CB)
-        } as *mut mpv_opengl_cb_context ;
-        let ret = unsafe {
-            mpv_opengl_cb_init_gl(opengl_ctx, ptr::null(), get_proc_address, get_proc_address_ctx)
-        };
 
-        let mpv_handler = MpvHandler {gl_context:Some(opengl_ctx),handle:handle};
-        
-        // Actually using the opengl_cb state has to be explicitly requested.
-        // Otherwise, mpv will create a separate platform window.
-        mpv_handler.set_option("vo", "opengl-cb").expect("Error setting vo option to opengl-cb");
-
-        ret_to_result(ret,mpv_handler)
     }
 
     /// Render video
