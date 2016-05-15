@@ -117,6 +117,8 @@ impl<'a> MpvFormat for &'a str {
 impl MpvHandler {
 
     /// Creates a mpv handler
+    ///
+    /// It will create a new mpv player in another window
     pub fn init() -> Result<MpvHandler> {
         let handle = unsafe { mpv_create() };
         if handle == ptr::null_mut() {
@@ -144,7 +146,14 @@ impl MpvHandler {
         let ret = unsafe {
             mpv_opengl_cb_init_gl(opengl_ctx, ptr::null(), get_proc_address, get_proc_address_ctx)
         };
-        ret_to_result(ret,MpvHandler {gl_context:Some(opengl_ctx),handle:handle})
+
+        let mpv_handler = MpvHandler {gl_context:Some(opengl_ctx),handle:handle};
+        
+        // Actually using the opengl_cb state has to be explicitly requested.
+        // Otherwise, mpv will create a separate platform window.
+        mpv_handler.set_option("vo", "opengl-cb").expect("Error setting vo option to opengl-cb");
+
+        ret_to_result(ret,mpv_handler)
     }
 
     /// Render video
