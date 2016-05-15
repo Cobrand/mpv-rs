@@ -1,10 +1,12 @@
 use mpv_gen::{mpv_command, mpv_command_async, mpv_wait_event, mpv_create, mpv_initialize,
               mpv_terminate_destroy, mpv_handle, mpv_set_option,
               Struct_mpv_event, mpv_set_property, mpv_set_property_async, mpv_get_property,
-              mpv_get_property_async,
+              mpv_get_property_async, mpv_opengl_cb_get_proc_address_fn, mpv_get_sub_api,
+              mpv_opengl_cb_context,
               MpvFormat as MpvInternalFormat};
 use mpv_enums::*;
 use mpv_error::*;
+use mpv_gl::OpenGLContext;
 
 use std::os::raw::{c_void,c_char};
 use std::ffi::CStr;
@@ -125,18 +127,17 @@ impl MpvHandler {
         ret_to_result(ret, MpvHandler { handle: handle })
     }
 
-    // // TODO: implement this
-    // pub fn get_opengl_context(&self,
-    //                           get_proc_address: mpv_opengl_cb_get_proc_address_fn,
-    //                           get_proc_address_ctx: *mut ::std::os::raw::c_void)
-    //                           -> Result<OpenglContext> {
-    //     OpenglContext::init(unsafe {
-    //                             mpv_get_sub_api(self.handle,
-    //                                             MpvSubApi::MPV_SUB_API_OPENGL_CB)
-    //                         } as *mut mpv_opengl_cb_context,
-    //                         get_proc_address,
-    //                         get_proc_address_ctx)
-    // }
+    pub fn get_opengl_context(&self,
+                              get_proc_address: mpv_opengl_cb_get_proc_address_fn,
+                              get_proc_address_ctx: *mut ::std::os::raw::c_void)
+                              -> Result<OpenGLContext> {
+        OpenGLContext::init(unsafe {
+                                mpv_get_sub_api(self.handle,
+                                                MpvSubApi::MPV_SUB_API_OPENGL_CB)
+                            } as *mut mpv_opengl_cb_context,
+                            get_proc_address,
+                            get_proc_address_ctx)
+    }
 
     /// Set a property synchronously
     pub fn set_property<T : MpvFormat>(&self, property: &str, value : T) -> Result<()>{
