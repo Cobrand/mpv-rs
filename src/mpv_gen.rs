@@ -56,6 +56,102 @@ pub type mpv_handle = Struct_mpv_handle;
 enum_from_primitive! {
 #[derive(Clone, Copy, Debug)]
 #[repr(i32)]
+/// # MPV_ERROR_SUCCESS
+/// No error happened (used to signal successful operation)
+/// # MPV_ERROR_EVENT_QUEUE_FULL
+/// The event ringbuffer is full. This means the client is choked, and can't
+/// receive any events. This can happen when too many asynchronous requests
+/// have been made, but not answered. Probably never happens in practice,
+/// unless the mpv core is frozen for some reason, and the client keeps
+/// making asynchronous requests. (Bugs in the client API implementation
+/// could also trigger this, e.g. if events become "lost".)
+/// # MPV_ERROR_NOMEM
+/// 'Memory allocation failed' error
+/// # MPV_ERROR_UNINITIALIZED
+/// The mpv core wasn't configured and initialized yet. See mpv.init()
+/// for additional details
+/// # MPV_ERROR_INVALID_PARAMETER
+/// Generic catch-all error if a parameter is set to an invalid or
+/// unsupported value. This is used if there is no better error code.
+///
+/// ## Example
+///
+/// Typically this is sent when you are trying to set properties or options
+/// where the value is not supported, but the format itself is
+///
+/// ```
+/// assert!(mpv.set_option("speed",-1.0).err() == MpvError::MPV_ERROR_UNINITIALIZED);
+/// // setting option "speed" with a negative value makes no sense
+/// // however sending floats for speed make sense, hence it did not send MPV_ERROR_OPTION_FORMAT
+/// ```
+///
+/// # MPV_ERROR_OPTION_NOT_FOUND
+/// Trying to set an option that doesn't exist.
+///
+/// ## Example
+///
+/// ```
+/// assert!(mpv.set_option("option_that_does_not_exist",0.5).err() == MpvError::MPV_ERROR_OPTION_NOT_FOUND);
+/// ```
+///
+/// # MPV_ERROR_OPTION_FORMAT
+///
+/// Trying to set an option using an unsupported format.
+///
+/// ## Example
+///
+/// Sending a 'sid' value as a float.
+///
+/// Note that in most of the cases, when the libmpv option/property expect an integer
+/// and gets a &str, it will try to convert the said str and a integer.
+///
+/// ```
+/// assert!(mpv.set_option("loop","2").is_ok());
+/// assert!(mpv.set_option("sid",4.5).err() == MpvError::MPV_ERROR_OPTION_FORMAT);
+/// ```
+///
+/// # MPV_ERROR_OPTION_ERROR
+/// Setting the option failed. Typically this happens if the provided option
+/// value could not be parsed
+/// # MPV_ERROR_PROPERTY_NOT_FOUND
+/// The accessed property doesn't exist
+/// # MPV_ERROR_PROPERTY_FORMAT
+/// Trying to set or get a property using an unsupported MPV_FORMAT.
+/// See MPV_ERROR_OPTION_FORMAT for more details.
+/// # MPV_ERROR_PROPERTY_UNAVAILABLE
+/// The property exists, but is not available.
+///
+/// ## Example
+///
+/// This usually happens when the
+/// associated subsystem is not active, e.g. querying audio parameters while
+/// audio is disabled.
+/// # MPV_ERROR_PROPERTY_ERROR
+/// Error setting or getting a property
+/// # MPV_ERROR_COMMAND
+/// General error when running a command with mpv_command and similar
+/// # MPV_ERROR_LOADING_FAILED
+/// Generic error on loading (used with MpvEventEndFile.error).
+/// # MPV_ERROR_AO_INIT_FAILED
+/// Initializing the audio output failed.
+/// # MPV_ERROR_VO_INIT_FAILED
+/// Initializing the video output failed.
+///
+/// # MPV_ERROR_NOTHING_TO_PLAY
+/// There was no audio or video data to play. This also happens if the
+/// file was recognized, but did not contain any audio or video streams,
+/// or no streams were selected.
+///
+/// # MPV_ERROR_UNKNOWN_FORMAT
+///
+/// When trying to load the file, the file format could not be determined,
+/// or the file was too broken to open it.
+/// # MPV_ERROR_UNSUPPORTED
+/// Generic error for signaling that certain system requirements are not
+/// fulfilled.
+/// # MPV_ERROR_NOT_IMPLEMENTED
+/// The libmpv API function which was called is a stub only
+/// Note that unimplemented mpv-rs functions will simply panic with unimplemented!()
 pub enum MpvError {
     MPV_ERROR_SUCCESS = 0,
     MPV_ERROR_EVENT_QUEUE_FULL = -1,

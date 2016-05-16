@@ -13,6 +13,11 @@ use std::ffi::CStr;
 use std::{ffi, ptr};
 use std::mem;
 
+/// The main struct of the mpv-rs crate
+///
+/// Almost every function from the libmpv API needs a context, and sometimes an opengl context,
+/// and both are stored here.
+///
 pub struct MpvHandler {
     handle: *mut mpv_handle,
     gl_context: Option<*mut mpv_opengl_cb_context>
@@ -114,11 +119,63 @@ impl<'a> MpvFormat for &'a str {
     }
 }
 
+
 impl MpvHandler {
 
     /// Creates a mpv handler
     ///
-    /// It will create a new mpv player in another window
+    /// Create a new mpv instance and an associated client API handle to control
+    /// the mpv instance. This instance is in a pre-initialized state,
+    /// and needs to be initialized with init() or init_with_gl()
+    /// to be actually used with most other API functions.
+    ///
+    /// Most API functions will return MPV_ERROR_UNINITIALIZED in the uninitialized
+    /// state. You can call mpv.set_option() to set initial options.
+    /// After this, call mpv.init() or init_with_gl() to start
+    /// the player, and then use e.g. mpv.command() to start playback of a file.
+    ///
+    /// The point of separating handle creation and actual initialization is that
+    /// you can configure things which can't be changed during runtime.
+    ///
+    /// Unlike the command line player, this will have initial settings suitable
+    /// for embedding in applications. The following settings are different:
+    /// - stdin/stdout/stderr and the terminal will never be accessed. This is
+    ///   equivalent to setting the --no-terminal option.
+    ///   (Technically, this also suppresses C signal handling.)
+    /// - No config files will be loaded. This is roughly equivalent to using
+    ///   --no-config. Since libmpv 1.15, you can actually re-enable this option,
+    ///   which will make libmpv load config files during mpv.init(). If you
+    ///   do this, you are strongly encouraged to set the "config-dir" option too.
+    ///   (Otherwise it will load the mpv command line player's config.)
+    /// - Idle mode is enabled, which means the playback core will enter idle mode
+    ///   if there are no more files to play on the internal playlist, instead of
+    ///   exiting. This is equivalent to the --idle option.
+    /// - Disable parts of input handling.
+    /// - Most of the different settings can be viewed with the command line player
+    ///   by running "mpv --show-profile=libmpv".
+    ///
+    /// All this assumes that API users want a mpv instance that is strictly
+    /// isolated from the command line player's configuration, user settings, and
+    /// so on. You can re-enable disabled features by setting the appropriate
+    /// options.
+    ///
+    /// The mpv command line parser is not available through this API, but you can
+    /// set individual options with mpv_set_option(). Files for playback must be
+    /// loaded with mpv_command() or others.
+    ///
+    /// Note that you should avoid doing concurrent accesses on the uninitialized
+    /// client handle. (Whether concurrent access is definitely allowed or not has
+    /// yet to be decided.)
+    ///
+    /// Returns a std::Result that contains an MpvHandler if successful,
+    /// or a MpvError is the creation failed. Currently, errors can happen in the following
+    /// situations :
+    ///         - out of memory
+    ///         - LC_NUMERIC is not set to "C" (see general remarks)
+    ///
+    /// You **must** init the handler afterwards using init() or init_with_gl()
+    ///
+    ///
 
     pub fn create() -> Result<MpvHandler> {
         let handle = unsafe { mpv_create() };
@@ -128,11 +185,38 @@ impl MpvHandler {
         ret_to_result(0,MpvHandler { gl_context: None,handle: handle })
     }
 
+    ///
+    /// Inits an uninitialized player.
+    /// Options should be sent to the player **before** initializing it.
+    ///
+    /// See set_option for more details
+    ///
+    /// If the mpv instance if already running, an error is returned.
+    ///
+    /// If everything goes well, it will return an Ok(()) (i.e. an empty Result)
+    ///
     pub fn init(&self) -> Result<()> {
         let ret = unsafe { mpv_initialize(self.handle) };
         ret_to_result(ret, ())
     }
 
+    ///
+    /// Inits an uninitialized player with a custom opengl instance.
+    ///
+    /// An option of an 'extern "C"' function must be passed as a parameter,
+    /// which fullfills the role of get_prox_address.
+    /// An arbitrary opaque user context which will be passed to the
+    /// get_proc_address callback must also be sent.
+    ///
+    /// # Panics
+    ///
+    /// It will panic if the custom get_proc_address_ctx is NULL
+    ///
+    /// # Errors
+    ///
+    /// * MPV_ERROR_UNSUPPORTED: the OpenGL version is not supported
+    ///                          (or required extensions are missing)
+    /// * MPV_ERROR_INVALID_PARAMETER: the OpenGL state was already initialized
     pub fn init_with_gl(&mut self,
                         get_proc_address: mpv_opengl_cb_get_proc_address_fn,
                         get_proc_address_ctx: *mut ::std::os::raw::c_void)
@@ -156,7 +240,6 @@ impl MpvHandler {
         } else {
             Err(result.err().unwrap())
         }
-
     }
 
     /// Render video
@@ -179,7 +262,10 @@ impl MpvHandler {
     /// that this parameter can be negative. In this case, the video
     /// frame will be rendered flipped.
     ///
-    /// fbo is FRAME_BUFFER_OBJECT, do not change unless you know what you are doing !
+    /// # Errors
+    ///
+    /// If the external video module has not been configured correctly, libmpv can send various
+    /// errors such as MPV_ERROR_UNSUPPORTED
     ///
     /// # Panics
     ///
