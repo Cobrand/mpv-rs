@@ -69,8 +69,8 @@ fn sdl_example(video_path: &Path) {
                     },
                     Event::KeyDown { keycode: Some(Keycode::Space),repeat: false, .. } => {
                         match mpv.get_property("pause").unwrap() {
-                            true => {mpv.set_property("pause",false).expect("Failed to pause player");},
-                            false => {mpv.set_property("pause",true).expect("Failed to unpause player");}
+                            true => {mpv.set_property_async("pause",false).expect("Failed to pause player");},
+                            false => {mpv.set_property_async("pause",true).expect("Failed to unpause player");}
                         }
                     },
                     _ => {}

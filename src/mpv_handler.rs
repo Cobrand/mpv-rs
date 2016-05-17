@@ -217,6 +217,8 @@ impl MpvHandler {
     /// * MPV_ERROR_UNSUPPORTED: the OpenGL version is not supported
     ///                          (or required extensions are missing)
     /// * MPV_ERROR_INVALID_PARAMETER: the OpenGL state was already initialized
+    ///
+    /// For additional information, see examples/sdl2.rs for a basic implementation
     pub fn init_with_gl(&mut self,
                         get_proc_address: mpv_opengl_cb_get_proc_address_fn,
                         get_proc_address_ctx: *mut ::std::os::raw::c_void)
@@ -292,6 +294,21 @@ impl MpvHandler {
         ret_to_result(ret,())
     }
 
+    /// Set a property asynchronously
+    pub fn set_property_async<T : MpvFormat>(&self, property: &str, value : T) -> Result<()>{
+        let mut ret = 0 ;
+        let format = T::get_mpv_format();
+        value.call_as_c_void(|ptr:*mut c_void|{
+            ret = unsafe {
+                mpv_set_property(self.handle,
+                                 ffi::CString::new(property).unwrap().as_ptr(),
+                                 format,
+                                 ptr)
+            }
+        });
+        ret_to_result(ret,())
+    }
+
     /// Get a property synchronously
     pub fn get_property<T : MpvFormat>(&self, property: &str) -> Result<T> {
         let mut ret = 0 ;
@@ -306,6 +323,19 @@ impl MpvHandler {
             }
         });
         ret_to_result(ret,result)
+    }
+
+    /// Get a property asynchronously
+    pub fn get_property_async<T : MpvFormat>(&self, property: &str, userdata :u64) -> Result<()> {
+        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
+        let mut ret = 0 ;
+        ret = unsafe {
+            mpv_get_property_async(self.handle,
+                                   userdata,
+                                   ffi::CString::new(property).unwrap().as_ptr(),
+                                   T::get_mpv_format())
+        };
+        ret_to_result(ret,())
     }
 
     ///
@@ -348,6 +378,7 @@ impl MpvHandler {
 
     /// Send a command asynchronously
     pub fn command_async(&self, command: &[&str], userdata :u64) -> Result<()> {
+        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
         let command_cstring: Vec<_> = command.iter()
                                              .map(|item| ffi::CString::new(*item).unwrap())
                                              .collect();
@@ -355,7 +386,6 @@ impl MpvHandler {
                                                           .map(|item| item.as_ptr())
                                                           .collect();
         command_pointers.push(ptr::null());
-        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
         let ret = unsafe { mpv_command_async(self.handle, userdata,command_pointers.as_mut_ptr())};
 
         ret_to_result(ret, ())
