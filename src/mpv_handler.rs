@@ -3,7 +3,7 @@ use mpv_gen::{mpv_command, mpv_command_async, mpv_wait_event, mpv_create, mpv_in
               Struct_mpv_event, mpv_set_property, mpv_set_property_async, mpv_get_property,
               mpv_get_property_async, mpv_opengl_cb_get_proc_address_fn, mpv_get_sub_api,
               mpv_opengl_cb_uninit_gl, mpv_opengl_cb_init_gl, mpv_opengl_cb_draw,
-              mpv_opengl_cb_context,
+              mpv_opengl_cb_context, mpv_observe_property, mpv_unobserve_property,
               MpvFormat as MpvInternalFormat};
 use mpv_enums::*;
 use mpv_error::*;
@@ -419,6 +419,26 @@ impl MpvHandler {
             MpvEventId::MPV_EVENT_NONE => None,
             _ => Some(event),
         }
+    }
+
+    pub fn observe_property<T:MpvFormat>(&self,userdata:u32,name:&str) -> Result<()>{
+        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong ;
+        let ret = unsafe {
+            mpv_observe_property(self.handle,
+                                 userdata,
+                                 ffi::CString::new(name).unwrap().as_ptr(),
+                                 T::get_mpv_format())
+        };
+        ret_to_result(ret,())
+    }
+
+    pub fn unobserve_property(&self,userdata:u32) -> Result<()> {
+        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong ;
+        let ret = unsafe {
+            mpv_unobserve_property(self.handle,
+                                 userdata)
+        };
+        ret_to_result(ret,())
     }
 }
 
