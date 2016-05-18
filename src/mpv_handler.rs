@@ -302,15 +302,17 @@ impl MpvHandler {
     }
 
     /// Set a property asynchronously
-    pub fn set_property_async<T : MpvFormat>(&mut self, property: &str, value : T) -> Result<()>{
+    pub fn set_property_async<T : MpvFormat>(&mut self, property: &str, value : T, userdata:u64) -> Result<()>{
+        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
         let mut ret = 0 ;
         let format = T::get_mpv_format();
         value.call_as_c_void(|ptr:*mut c_void|{
             ret = unsafe {
-                mpv_set_property(self.handle,
-                                 ffi::CString::new(property).unwrap().as_ptr(),
-                                 format,
-                                 ptr)
+                mpv_set_property_async(self.handle,
+                                       userdata,
+                                       ffi::CString::new(property).unwrap().as_ptr(),
+                                       format,
+                                       ptr)
             }
         });
         ret_to_result(ret,())
