@@ -13,6 +13,7 @@ use std::os::raw::{c_void,c_char};
 use std::ffi::CStr;
 use std::{ffi, ptr};
 use std::mem;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 /// The main struct of the mpv-rs crate
 ///
@@ -22,7 +23,7 @@ use std::mem;
 pub struct MpvHandler {
     handle: *mut mpv_handle,
     gl_context: Option<*mut mpv_opengl_cb_context>,
-    update_available:bool
+    update_available:AtomicBool
 }
 
 pub trait MpvFormat {
@@ -181,7 +182,9 @@ impl MpvHandler {
         if handle == ptr::null_mut() {
             return Err(MpvError::MPV_ERROR_NOMEM);
         }
-        ret_to_result(0,MpvHandler { gl_context: None,handle: handle,update_available:false})
+        ret_to_result(0,MpvHandler { gl_context: None,
+                                     handle: handle,
+                                     update_available:AtomicBool::new(false)})
     }
 
     ///
@@ -277,7 +280,7 @@ impl MpvHandler {
     /// This function will panic if you did not initialize the object with init_with_gl(...)
     ///
     pub fn draw(&mut self, fbo: i32, width: i32, heigth: i32) -> Result<()> {
-        self.update_available = false ;
+        self.update_available.store(false,Ordering::Relaxed) ;
         let opengl_ctx = self.gl_context.expect("Opengl context is required to draw");
         let ret = unsafe { mpv_opengl_cb_draw(opengl_ctx, fbo, width, heigth) };
         ret_to_result(ret, ())
@@ -449,11 +452,11 @@ impl MpvHandler {
     unsafe extern "C" fn update_draw(cb_ctx: *mut ::std::os::raw::c_void) {
         let ptr : *mut MpvHandler = cb_ctx as *mut MpvHandler ;
         let mpv : &mut MpvHandler = &mut (*ptr) ;
-        mpv.update_available = true ;
+        mpv.update_available.store(true, Ordering::Relaxed);
     }
 
     pub fn is_update_available(&self) -> bool {
-        self.update_available
+        self.update_available.load(Ordering::Relaxed)
     }
 }
 
