@@ -15,6 +15,20 @@ use std::{ffi, ptr};
 use std::mem;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+fn from_userdata(userdata: ::std::os::raw::c_ulong) -> (MpvInternalFormat,u16){
+    let format : MpvInternalFormat =
+    MpvInternalFormat::from_u16((userdata.clone() >> 16) as u16)
+        .expect("Unexpected value for userdata, format was not found");
+    let userdata :u16= userdata as u16;
+    (format,userdata)
+}
+
+fn to_userdata(format:MpvInternalFormat,userdata:u16) -> ::std::os::raw::c_ulong {
+    let format   :u32 = (format as u32) >> 16 ;
+    let userdata :u32 = userdata as u32 ;
+    (format + userdata) as ::std::os::raw::c_ulong
+}
+
 /// The main struct of the mpv-rs crate
 ///
 /// Almost every function from the libmpv API needs a context, and sometimes an opengl context,
