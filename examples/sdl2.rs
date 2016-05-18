@@ -30,11 +30,11 @@ fn sdl_example(video_path: &Path) {
     for item in sdl2::render::drivers() {
         driver_index = driver_index + 1 ;
         info!("* Found driver '{}'",item.name);
-        if (item.name == "opengl"){
+        if item.name == "opengl"{
             opengl_driver = Some(driver_index);
         }
     }
-    if (opengl_driver.is_some()){
+    if opengl_driver.is_some(){
         let opengl_driver = opengl_driver.unwrap() as u32;
         let sdl_context = sdl2::init().unwrap();
         let mut video_subsystem = sdl_context.video().unwrap();
@@ -44,14 +44,15 @@ fn sdl_example(video_path: &Path) {
             .opengl()
             .build()
             .unwrap();
-        let mut renderer = window.renderer()
+        let renderer = window.renderer()
             .present_vsync()
             .index(opengl_driver)
             .build()
             .expect("Failed to create renderer with given parameters");
         renderer.window()
                 .expect("Failed to extract window from displayer")
-                .gl_set_context_to_current();
+                .gl_set_context_to_current()
+                .unwrap();
         let ptr = &mut video_subsystem as *mut _ as *mut c_void;
         let mut mpv = mpv::MpvHandler::create().expect("Error while creating MPV");
         mpv.init_with_gl(Some(get_proc_address), ptr).expect("Error while initializing MPV");
@@ -88,7 +89,7 @@ fn sdl_example(video_path: &Path) {
                 };
             }
             let (width, height) = renderer.window().unwrap().size();
-            if (mpv.is_update_available()){
+            if mpv.is_update_available(){
                 mpv.draw(0, width as i32, -(height as i32)).expect("Failed to draw ");
             }
             renderer.window().unwrap().gl_swap_window();

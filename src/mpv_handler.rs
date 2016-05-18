@@ -52,7 +52,6 @@ impl MpvFormat for f64 {
 
 impl MpvFormat for i64 {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let format = Self::get_mpv_format();
         let mut cpy : i64= *self;
         let pointer = &mut cpy as *mut _ as *mut c_void;
         f(pointer)
@@ -72,8 +71,7 @@ impl MpvFormat for i64 {
 
 impl MpvFormat for bool {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let format = Self::get_mpv_format();
-        let mut cpy : ::std::os::raw::c_int = if (*self == true) {
+        let mut cpy : ::std::os::raw::c_int = if *self == true {
             1
         } else {
             0
@@ -100,8 +98,7 @@ impl MpvFormat for bool {
 
 impl<'a> MpvFormat for &'a str {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let format = Self::get_mpv_format();
-        let mut string = ffi::CString::new(*self).unwrap();
+        let string = ffi::CString::new(*self).unwrap();
         let ptr = string.as_ptr();
         f(unsafe {mem::transmute(&ptr)})
     }
@@ -227,7 +224,7 @@ impl MpvHandler {
                         -> Result<()> {
         self.set_option("vo", "opengl-cb").expect("Error setting vo option to opengl-cb");
         let result = self.init();
-        if (result.is_ok()){
+        if result.is_ok(){
             let opengl_ctx = unsafe {
                 mpv_get_sub_api(self.handle,
                                 MpvSubApi::MPV_SUB_API_OPENGL_CB)
@@ -321,7 +318,7 @@ impl MpvHandler {
     /// Get a property synchronously
     pub fn get_property<T : MpvFormat>(&self, property: &str) -> Result<T> {
         let mut ret = 0 ;
-        let mut result : T ;
+        let result : T ;
         let format = T::get_mpv_format();
         result = T::get_from_c_void(|ptr:*mut c_void|{
             ret = unsafe {
@@ -337,8 +334,7 @@ impl MpvHandler {
     /// Get a property asynchronously
     pub fn get_property_async<T : MpvFormat>(&self, property: &str, userdata :u64) -> Result<()> {
         let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
-        let mut ret = 0 ;
-        ret = unsafe {
+        let ret = unsafe {
             mpv_get_property_async(self.handle,
                                    userdata,
                                    ffi::CString::new(property).unwrap().as_ptr(),
@@ -463,7 +459,7 @@ impl MpvHandler {
 
 impl Drop for MpvHandler {
     fn drop(&mut self) {
-        if (self.gl_context.is_some()){
+        if self.gl_context.is_some(){
             unsafe {
                 // careful : always uninit gl before terminate_destroy mpv
                 mpv_opengl_cb_uninit_gl(self.gl_context.unwrap());
