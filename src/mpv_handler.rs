@@ -4,6 +4,7 @@ use mpv_gen::{mpv_command, mpv_command_async, mpv_wait_event, mpv_create, mpv_in
               mpv_get_property_async, mpv_opengl_cb_get_proc_address_fn, mpv_get_sub_api,
               mpv_opengl_cb_uninit_gl, mpv_opengl_cb_init_gl, mpv_opengl_cb_draw,
               mpv_opengl_cb_context, mpv_observe_property, mpv_unobserve_property,
+              mpv_opengl_cb_set_update_callback,
               MpvFormat as MpvInternalFormat};
 use mpv_enums::*;
 use mpv_error::*;
@@ -20,7 +21,8 @@ use std::mem;
 ///
 pub struct MpvHandler {
     handle: *mut mpv_handle,
-    gl_context: Option<*mut mpv_opengl_cb_context>
+    gl_context: Option<*mut mpv_opengl_cb_context>,
+    update_available:bool
 }
 
 pub trait MpvFormat {
@@ -182,7 +184,7 @@ impl MpvHandler {
         if handle == ptr::null_mut() {
             return Err(MpvError::MPV_ERROR_NOMEM);
         }
-        ret_to_result(0,MpvHandler { gl_context: None,handle: handle })
+        ret_to_result(0,MpvHandler { gl_context: None,handle: handle,update_available:false})
     }
 
     ///
@@ -195,7 +197,7 @@ impl MpvHandler {
     ///
     /// If everything goes well, it will return an Ok(()) (i.e. an empty Result)
     ///
-    pub fn init(&self) -> Result<()> {
+    pub fn init(&mut self) -> Result<()> {
         let ret = unsafe { mpv_initialize(self.handle) };
         ret_to_result(ret, ())
     }
@@ -237,6 +239,10 @@ impl MpvHandler {
             // Actually using the opengl_cb state has to be explicitly requested.
             // Otherwise, mpv will create a separate platform window.
 
+            // Additional callback
+            unsafe {mpv_opengl_cb_set_update_callback(self.gl_context.unwrap(),
+                                                      Some(Self::update_draw),
+                                                      self as *mut _ as *mut c_void)};
 
             ret_to_result(ret,())
         } else {
@@ -273,14 +279,15 @@ impl MpvHandler {
     ///
     /// This function will panic if you did not initialize the object with init_with_gl(...)
     ///
-    pub fn draw(&self, fbo: i32, width: i32, heigth: i32) -> Result<()> {
+    pub fn draw(&mut self, fbo: i32, width: i32, heigth: i32) -> Result<()> {
+        self.update_available = false ;
         let opengl_ctx = self.gl_context.expect("Opengl context is required to draw");
         let ret = unsafe { mpv_opengl_cb_draw(opengl_ctx, fbo, width, heigth) };
         ret_to_result(ret, ())
     }
 
     /// Set a property synchronously
-    pub fn set_property<T : MpvFormat>(&self, property: &str, value : T) -> Result<()>{
+    pub fn set_property<T : MpvFormat>(&mut self, property: &str, value : T) -> Result<()>{
         let mut ret = 0 ;
         let format = T::get_mpv_format();
         value.call_as_c_void(|ptr:*mut c_void|{
@@ -295,7 +302,7 @@ impl MpvHandler {
     }
 
     /// Set a property asynchronously
-    pub fn set_property_async<T : MpvFormat>(&self, property: &str, value : T) -> Result<()>{
+    pub fn set_property_async<T : MpvFormat>(&mut self, property: &str, value : T) -> Result<()>{
         let mut ret = 0 ;
         let format = T::get_mpv_format();
         value.call_as_c_void(|ptr:*mut c_void|{
@@ -347,7 +354,7 @@ impl MpvHandler {
     /// mpv.set_property() to change settings during playback, because the property
     /// mechanism guarantees that changes take effect immediately.
     ///
-    pub fn set_option<T : MpvFormat>(&self, property: &str, option: T) -> Result<()> {
+    pub fn set_option<T : MpvFormat>(&mut self, property: &str, option: T) -> Result<()> {
         let mut ret = 0 ;
         let format = T::get_mpv_format();
         option.call_as_c_void(|ptr:*mut c_void|{
@@ -362,7 +369,7 @@ impl MpvHandler {
     }
 
     /// Send a command synchronously
-    pub fn command(&self, command: &[&str]) -> Result<()> {
+    pub fn command(&mut self, command: &[&str]) -> Result<()> {
         let command_cstring: Vec<_> = command.iter()
                                              .map(|item| ffi::CString::new(*item).unwrap())
                                              .collect();
@@ -377,7 +384,7 @@ impl MpvHandler {
     }
 
     /// Send a command asynchronously
-    pub fn command_async(&self, command: &[&str], userdata :u64) -> Result<()> {
+    pub fn command_async(&mut self, command: &[&str], userdata :u64) -> Result<()> {
         let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
         let command_cstring: Vec<_> = command.iter()
                                              .map(|item| ffi::CString::new(*item).unwrap())
@@ -407,7 +414,7 @@ impl MpvHandler {
     ///
     ///
 
-    pub fn wait_event(&self,timeout:f64) -> Option<Struct_mpv_event> {
+    pub fn wait_event(&mut self,timeout:f64) -> Option<Struct_mpv_event> {
         let event = unsafe {
             let ptr = mpv_wait_event(self.handle, timeout);
             if ptr.is_null() {
@@ -421,7 +428,7 @@ impl MpvHandler {
         }
     }
 
-    pub fn observe_property<T:MpvFormat>(&self,userdata:u32,name:&str) -> Result<()>{
+    pub fn observe_property<T:MpvFormat>(&mut self,userdata:u32,name:&str) -> Result<()>{
         let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong ;
         let ret = unsafe {
             mpv_observe_property(self.handle,
@@ -432,13 +439,23 @@ impl MpvHandler {
         ret_to_result(ret,())
     }
 
-    pub fn unobserve_property(&self,userdata:u32) -> Result<()> {
+    pub fn unobserve_property(&mut self,userdata:u32) -> Result<()> {
         let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong ;
         let ret = unsafe {
             mpv_unobserve_property(self.handle,
                                  userdata)
         };
         ret_to_result(ret,())
+    }
+
+    unsafe extern "C" fn update_draw(cb_ctx: *mut ::std::os::raw::c_void) {
+        let ptr : *mut MpvHandler = cb_ctx as *mut MpvHandler ;
+        let mpv : &mut MpvHandler = &mut (*ptr) ;
+        mpv.update_available = true ;
+    }
+
+    pub fn is_update_available(&self) -> bool {
+        self.update_available
     }
 }
 
