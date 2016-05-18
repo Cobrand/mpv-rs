@@ -5,7 +5,7 @@ use std::env;
 use std::path::Path;
 
 fn simple_example(video_path: &Path) {
-    let mpv = mpv::MpvHandler::create().expect("Error while creating MPV");
+    let mut mpv = mpv::MpvHandler::create().expect("Error while creating MPV");
     if video_path.is_file() {
         let video_path = video_path.to_str().expect("Expected a string for Path, got None");
 
@@ -13,7 +13,7 @@ fn simple_example(video_path: &Path) {
         // mpv options should be set before initializing
         mpv.set_option("sid","no").unwrap();
 
-        mpv.init();
+        mpv.init().expect("Failed to init MPV");
 
         mpv.command(&["loadfile", video_path as &str])
            .expect("Error loading file");
