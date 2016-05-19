@@ -3,7 +3,7 @@ use std::ffi::CStr;
 use std::mem;
 
 use mpv_error::* ;
-use mpv_gen::{mpv_event_name,MpvFormat as MpvInternalFormat};
+use mpv_gen::{mpv_event_name,MpvFormat as MpvInternalFormat,mpv_event_property};
 pub use mpv_gen::{MpvEventId, MpvSubApi, MpvLogLevel, MpvEndFileReason};
 use ::std::os::raw::{c_int,c_void,c_ulong,c_char};
 
@@ -57,7 +57,17 @@ pub fn to_event<'a,'b>(event_id:MpvEventId,
         MpvEventId::MPV_EVENT_NONE                  => None,
         MpvEventId::MPV_EVENT_SHUTDOWN              => Some(Event::Shutdown),
         MpvEventId::MPV_EVENT_LOG_MESSAGE           => unimplemented!(),
-        MpvEventId::MPV_EVENT_GET_PROPERTY_REPLY    => unimplemented!(),
+        MpvEventId::MPV_EVENT_GET_PROPERTY_REPLY    => {
+            let property_struct : mpv_event_property = unsafe {*(data as *mut mpv_event_property)};
+            let format_result = Format::get_from_c_void(property_struct.format,property_struct.data);
+            let string = unsafe {
+                CStr::from_ptr(property_struct.name)
+                 .to_str()
+                 .unwrap()
+            };
+            let result = ret_to_result(error, (format_result,userdata));
+            Some(Event::GetPropertyReply(string,result))
+        },
         MpvEventId::MPV_EVENT_SET_PROPERTY_REPLY    => Some(Event::SetPropertyReply(ret_to_result(error, userdata))),
         MpvEventId::MPV_EVENT_COMMAND_REPLY         => Some(Event::CommandReply(ret_to_result(error, userdata))),
         MpvEventId::MPV_EVENT_START_FILE            => Some(Event::StartFile),
