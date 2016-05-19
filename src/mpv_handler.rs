@@ -1,15 +1,14 @@
 use mpv_gen::{mpv_command, mpv_command_async, mpv_wait_event, mpv_create, mpv_initialize,
               mpv_terminate_destroy, mpv_handle, mpv_set_option,
-              Struct_mpv_event, mpv_set_property, mpv_set_property_async, mpv_get_property,
+              mpv_set_property, mpv_set_property_async, mpv_get_property,
               mpv_get_property_async, mpv_opengl_cb_get_proc_address_fn, mpv_get_sub_api,
               mpv_opengl_cb_uninit_gl, mpv_opengl_cb_init_gl, mpv_opengl_cb_draw,
               mpv_opengl_cb_context, mpv_observe_property, mpv_unobserve_property,
-              mpv_opengl_cb_set_update_callback,
-              MpvFormat as MpvInternalFormat};
+              mpv_opengl_cb_set_update_callback};
 use mpv_enums::*;
 use mpv_error::*;
 
-use std::os::raw::{c_void,c_char,c_ulong};
+use std::os::raw::c_void;
 use std::{ffi, ptr};
 use std::sync::atomic::{AtomicBool, Ordering};
 

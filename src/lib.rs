@@ -133,7 +133,6 @@ mod mpv_handler;
 pub use mpv_error::{MpvError,Result};
 pub use mpv_handler::*;
 pub use mpv_enums::{
-    MpvEventId,
     MpvSubApi,
     MpvLogLevel,
     MpvEndFileReason,
