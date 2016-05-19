@@ -9,7 +9,7 @@ use mpv_gen::{mpv_command, mpv_command_async, mpv_wait_event, mpv_create, mpv_in
 use mpv_enums::*;
 use mpv_error::*;
 
-use std::os::raw::{c_void,c_char};
+use std::os::raw::{c_void,c_char,c_ulong};
 use std::ffi::CStr;
 use std::{ffi, ptr};
 use std::mem;
@@ -24,7 +24,7 @@ fn from_userdata(userdata: ::std::os::raw::c_ulong) -> (MpvInternalFormat,u16){
 }
 
 fn to_userdata(format:MpvInternalFormat,userdata:u16) -> ::std::os::raw::c_ulong {
-    let format   :u32 = (format as u32) >> 16 ;
+    let format   :u32 = (format as u32) << 16 ;
     let userdata :u32 = userdata as u32 ;
     (format + userdata) as ::std::os::raw::c_ulong
 }
@@ -316,7 +316,7 @@ impl MpvHandler {
     }
 
     /// Set a property asynchronously
-    pub fn set_property_async<T : MpvFormat>(&mut self, property: &str, value : T, userdata:u64) -> Result<()>{
+    pub fn set_property_async<T : MpvFormat>(&mut self, property: &str, value : T, userdata:u32) -> Result<()>{
         let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
         let mut ret = 0 ;
         let format = T::get_mpv_format();
@@ -349,8 +349,8 @@ impl MpvHandler {
     }
 
     /// Get a property asynchronously
-    pub fn get_property_async<T : MpvFormat>(&self, property: &str, userdata :u64) -> Result<()> {
-        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
+    pub fn get_property_async<T : MpvFormat>(&self, property: &str, userdata :u16) -> Result<()> {
+        let userdata = to_userdata(T::get_mpv_format(), userdata);
         let ret = unsafe {
             mpv_get_property_async(self.handle,
                                    userdata,
@@ -399,7 +399,7 @@ impl MpvHandler {
     }
 
     /// Send a command asynchronously
-    pub fn command_async(&mut self, command: &[&str], userdata :u64) -> Result<()> {
+    pub fn command_async(&mut self, command: &[&str], userdata :u32) -> Result<()> {
         let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
         let command_cstring: Vec<_> = command.iter()
                                              .map(|item| ffi::CString::new(*item).unwrap())
@@ -443,8 +443,8 @@ impl MpvHandler {
         }
     }
 
-    pub fn observe_property<T:MpvFormat>(&mut self,userdata:u32,name:&str) -> Result<()>{
-        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong ;
+    pub fn observe_property<T:MpvFormat>(&mut self,name:&str,userdata:u16) -> Result<()>{
+        let userdata = to_userdata(T::get_mpv_format(), userdata);
         let ret = unsafe {
             mpv_observe_property(self.handle,
                                  userdata,
@@ -454,11 +454,11 @@ impl MpvHandler {
         ret_to_result(ret,())
     }
 
-    pub fn unobserve_property(&mut self,userdata:u32) -> Result<()> {
-        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong ;
+    pub fn unobserve_property<T:MpvFormat>(&mut self,userdata:u16) -> Result<()> {
+        let userdata = to_userdata(T::get_mpv_format(), userdata);
         let ret = unsafe {
             mpv_unobserve_property(self.handle,
-                                 userdata)
+                                   userdata)
         };
         ret_to_result(ret,())
     }
