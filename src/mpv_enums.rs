@@ -3,6 +3,7 @@ use std::{ffi, fmt};
 use mpv_error::* ;
 use mpv_gen::mpv_event_name;
 pub use mpv_gen::{MpvEventId, MpvSubApi, MpvLogLevel, MpvEndFileReason};
+use ::std::os::raw::{c_int,c_void,c_ulong};
 
 impl MpvEventId {
     pub fn to_str(&self) -> &str {
@@ -41,6 +42,13 @@ pub enum Event<'a,'b> {
     ChapterChange,
     QueueOverflow
 }
+
+pub fn to_event<'a,'b>(event_id:MpvEventId,
+                error: c_int,
+                reply_userdata: c_ulong,
+                data:*mut c_void) -> Option<Event<'a,'b>> {
+                    None
+                }
 
 pub enum Format<'a>{
     Flag(bool),
