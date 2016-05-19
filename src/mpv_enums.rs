@@ -52,13 +52,14 @@ pub fn to_event<'a,'b>(event_id:MpvEventId,
                 error: c_int,
                 reply_userdata: c_ulong,
                 data:*mut c_void) -> Option<Event<'a,'b>> {
+    let userdata : u32 = reply_userdata as u32 ;
     match event_id {
         MpvEventId::MPV_EVENT_NONE                  => None,
         MpvEventId::MPV_EVENT_SHUTDOWN              => Some(Event::Shutdown),
         MpvEventId::MPV_EVENT_LOG_MESSAGE           => unimplemented!(),
         MpvEventId::MPV_EVENT_GET_PROPERTY_REPLY    => unimplemented!(),
-        MpvEventId::MPV_EVENT_SET_PROPERTY_REPLY    => unimplemented!(),
-        MpvEventId::MPV_EVENT_COMMAND_REPLY         => unimplemented!(),
+        MpvEventId::MPV_EVENT_SET_PROPERTY_REPLY    => Some(Event::SetPropertyReply(ret_to_result(error, userdata))),
+        MpvEventId::MPV_EVENT_COMMAND_REPLY         => Some(Event::CommandReply(ret_to_result(error, userdata))),
         MpvEventId::MPV_EVENT_START_FILE            => Some(Event::StartFile),
         MpvEventId::MPV_EVENT_END_FILE              => unimplemented!(),
         MpvEventId::MPV_EVENT_FILE_LOADED           => Some(Event::FileLoaded),
@@ -87,6 +88,50 @@ pub enum Format<'a>{
     Double(f64),
     Int(i64),
     OsdStr(&'a str)
+}
+
+impl<'a> Format<'a> {
+    pub fn get_mpv_format(&self) -> MpvInternalFormat {
+        match self {
+            &Format::Flag(_) => MpvInternalFormat::MPV_FORMAT_FLAG,
+            &Format::Str(_) => MpvInternalFormat::MPV_FORMAT_STRING,
+            &Format::Double(_) => MpvInternalFormat::MPV_FORMAT_DOUBLE,
+            &Format::Int(_) => MpvInternalFormat::MPV_FORMAT_INT64,
+            &Format::OsdStr(_) => MpvInternalFormat::MPV_FORMAT_OSD_STRING,
+        }
+    }
+    pub fn get_from_c_void(format:MpvInternalFormat,pointer:*mut c_void) -> Self {
+        match format {
+            MpvInternalFormat::MPV_FORMAT_FLAG => {
+                Format::Flag(unsafe { *(pointer as *mut bool) })
+            },
+            MpvInternalFormat::MPV_FORMAT_STRING => {
+                let char_ptr : *mut c_char =unsafe{ mem::transmute(*(pointer as *mut *mut c_char))};
+                Format::Str(unsafe {
+                    CStr::from_ptr(char_ptr)
+                         .to_str()
+                         .unwrap()
+                })
+            },
+            MpvInternalFormat::MPV_FORMAT_OSD_STRING => {
+                let char_ptr : *mut c_char =unsafe{ mem::transmute(*(pointer as *mut *mut c_char))};
+                Format::OsdStr(unsafe {
+                    CStr::from_ptr(char_ptr)
+                         .to_str()
+                         .unwrap()
+                })
+            },
+            MpvInternalFormat::MPV_FORMAT_DOUBLE => {
+                Format::Double(unsafe { *(pointer as *mut f64) })
+            },
+            MpvInternalFormat::MPV_FORMAT_INT64 => {
+                Format::Int(unsafe { *(pointer as *mut i64) })
+            },
+            _ => {
+                Format::Flag(false)
+            }
+        }
+    }
 }
 
 pub trait MpvFormat {
