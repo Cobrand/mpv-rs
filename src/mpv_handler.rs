@@ -319,7 +319,7 @@ impl MpvHandler {
     ///
     ///
 
-    pub fn wait_event(&mut self,timeout:f64) -> Option<Struct_mpv_event> {
+    pub fn wait_event<'a,'b>(&mut self,timeout:f64) -> Option<Event<'a,'b>> {
         let event = unsafe {
             let ptr = mpv_wait_event(self.handle, timeout);
             if ptr.is_null() {
@@ -327,10 +327,10 @@ impl MpvHandler {
             }
             *ptr
         };
-        match event.event_id {
-            MpvEventId::MPV_EVENT_NONE => None,
-            _ => Some(event),
-        }
+        to_event(event.event_id,
+                 event.error,
+                 event.reply_userdata,
+                 event.data)
     }
 
     pub fn observe_property<T:MpvFormat>(&mut self,name:&str,userdata:u16) -> Result<()>{

@@ -10,7 +10,7 @@ use std::path::Path;
 use std::os::raw::{c_void,c_char};
 use std::ffi::CStr;
 
-use sdl2::event::Event;
+use sdl2::event::Event as SdlEvent;
 use sdl2::keyboard::Keycode;
 
 unsafe extern "C" fn get_proc_address(arg: *mut c_void,
@@ -56,7 +56,7 @@ fn sdl_example(video_path: &Path) {
         let ptr = &mut video_subsystem as *mut _ as *mut c_void;
         let mut mpv = mpv::MpvHandler::create().expect("Error while creating MPV");
         mpv.init_with_gl(Some(get_proc_address), ptr).expect("Error while initializing MPV");
-        mpv.observe_property::<bool>("pause",5);
+        //mpv.observe_property::<bool>("pause",5);
         let video_path = video_path.to_str().expect("Expected a string for Path, got None");
         mpv.command(&["loadfile", video_path as &str])
            .expect("Error loading file");
@@ -65,17 +65,17 @@ fn sdl_example(video_path: &Path) {
         'main: loop {
             for event in event_pump.poll_iter() {
                 match event {
-                    Event::Quit {..} | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                    SdlEvent::Quit {..} | SdlEvent::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                         break 'main
                     },
-                    Event::KeyDown { keycode: Some(Keycode::Space),repeat: false, .. } => {
+                    SdlEvent::KeyDown { keycode: Some(Keycode::Space),repeat: false, .. } => {
                         match mpv.get_property("pause").unwrap() {
                             true => {mpv.set_property_async("pause",false,1).expect("Failed to pause player");},
                             false => {mpv.set_property_async("pause",true,1).expect("Failed to unpause player");}
                         }
                     },
-                    Event::KeyDown { keycode: Some(Keycode::O),repeat: false, .. } => {
-                        mpv.unobserve_property(5).unwrap();
+                    SdlEvent::KeyDown { keycode: Some(Keycode::O),repeat: false, .. } => {
+                        mpv.get_property_async::<&str>("speed",5).unwrap();
                     },
                     _ => {}
                 }
@@ -83,9 +83,9 @@ fn sdl_example(video_path: &Path) {
             while let Some(event) = mpv.wait_event(0.0) {
                 // even if you don't do anything with the events, it is still necessary to empty
                 // the event loop
-                println!("RECEIVED EVENT : {:?}", event.event_id.to_str());
-                match event.event_id {
-                    mpv::MpvEventId::MPV_EVENT_SHUTDOWN => {
+                println!("RECEIVED EVENT : {:?}", event);
+                match event {
+                    mpv::Event::Shutdown | mpv::Event::EndFile(_) => {
                         break 'main;
                     }
                     _ => {}

@@ -3,7 +3,7 @@ use std::ffi::CStr;
 use std::mem;
 
 use mpv_error::* ;
-use mpv_gen::{mpv_event_name,MpvFormat as MpvInternalFormat,mpv_event_property};
+use mpv_gen::{mpv_event_name,MpvFormat as MpvInternalFormat,mpv_event_property,mpv_event_end_file};
 pub use mpv_gen::{MpvEventId, MpvSubApi, MpvLogLevel, MpvEndFileReason};
 use ::std::os::raw::{c_int,c_void,c_ulong,c_char};
 
@@ -21,6 +21,7 @@ impl fmt::Display for MpvEventId {
     }
 }
 
+#[derive(Debug)]
 pub enum Event<'a,'b> {
     Shutdown,
     LogMessage,//(&'a str),
@@ -71,7 +72,14 @@ pub fn to_event<'a,'b>(event_id:MpvEventId,
         MpvEventId::MPV_EVENT_SET_PROPERTY_REPLY    => Some(Event::SetPropertyReply(ret_to_result(error, userdata))),
         MpvEventId::MPV_EVENT_COMMAND_REPLY         => Some(Event::CommandReply(ret_to_result(error, userdata))),
         MpvEventId::MPV_EVENT_START_FILE            => Some(Event::StartFile),
-        MpvEventId::MPV_EVENT_END_FILE              => unimplemented!(),
+        MpvEventId::MPV_EVENT_END_FILE              => {
+            let end_file_reason : mpv_event_end_file = unsafe {*(data as *mut mpv_event_end_file)};
+            let result : Result<MpvEndFileReason> =
+            if end_file_reason.reason == 4
+            { Err(MpvError::from_i32(end_file_reason.error).unwrap()) }
+            else {Ok(MpvEndFileReason::from_i32(end_file_reason.reason).unwrap())};
+            Some(Event::EndFile(result))
+        }
         MpvEventId::MPV_EVENT_FILE_LOADED           => Some(Event::FileLoaded),
         MpvEventId::MPV_EVENT_TRACKS_CHANGED        => Some(Event::Unused),
         MpvEventId::MPV_EVENT_TRACK_SWITCHED        => Some(Event::TrackesSwitched),
@@ -92,6 +100,7 @@ pub fn to_event<'a,'b>(event_id:MpvEventId,
     }
 }
 
+#[derive(Debug)]
 pub enum Format<'a>{
     Flag(bool),
     Str(&'a str),

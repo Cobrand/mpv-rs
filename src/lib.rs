@@ -136,7 +136,8 @@ pub use mpv_enums::{
     MpvEventId,
     MpvSubApi,
     MpvLogLevel,
-    MpvEndFileReason
+    MpvEndFileReason,
+    Event
 };
 
 /// Returns the MPV_CLIENT_API_VERSION the mpv source has been compiled with
