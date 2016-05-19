@@ -75,7 +75,7 @@ fn sdl_example(video_path: &Path) {
                         }
                     },
                     Event::KeyDown { keycode: Some(Keycode::O),repeat: false, .. } => {
-                        mpv.unobserve_property::<bool>(5).unwrap();
+                        mpv.unobserve_property(5).unwrap();
                     },
                     _ => {}
                 }

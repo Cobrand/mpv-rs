@@ -15,20 +15,6 @@ use std::{ffi, ptr};
 use std::mem;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-fn from_userdata(userdata: ::std::os::raw::c_ulong) -> (MpvInternalFormat,u16){
-    let format : MpvInternalFormat =
-    MpvInternalFormat::from_u16((userdata.clone() >> 16) as u16)
-        .expect("Unexpected value for userdata, format was not found");
-    let userdata :u16= userdata as u16;
-    (format,userdata)
-}
-
-fn to_userdata(format:MpvInternalFormat,userdata:u16) -> ::std::os::raw::c_ulong {
-    let format   :u32 = (format as u32) << 16 ;
-    let userdata :u32 = userdata as u32 ;
-    (format + userdata) as ::std::os::raw::c_ulong
-}
-
 /// The main struct of the mpv-rs crate
 ///
 /// Almost every function from the libmpv API needs a context, and sometimes an opengl context,
@@ -349,8 +335,8 @@ impl MpvHandler {
     }
 
     /// Get a property asynchronously
-    pub fn get_property_async<T : MpvFormat>(&self, property: &str, userdata :u16) -> Result<()> {
-        let userdata = to_userdata(T::get_mpv_format(), userdata);
+    pub fn get_property_async<T : MpvFormat>(&self, property: &str, userdata :u32) -> Result<()> {
+        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
         let ret = unsafe {
             mpv_get_property_async(self.handle,
                                    userdata,
@@ -444,7 +430,7 @@ impl MpvHandler {
     }
 
     pub fn observe_property<T:MpvFormat>(&mut self,name:&str,userdata:u16) -> Result<()>{
-        let userdata = to_userdata(T::get_mpv_format(), userdata);
+        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
         let ret = unsafe {
             mpv_observe_property(self.handle,
                                  userdata,
@@ -454,8 +440,8 @@ impl MpvHandler {
         ret_to_result(ret,())
     }
 
-    pub fn unobserve_property<T:MpvFormat>(&mut self,userdata:u16) -> Result<()> {
-        let userdata = to_userdata(T::get_mpv_format(), userdata);
+    pub fn unobserve_property(&mut self,userdata:u16) -> Result<()> {
+        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
         let ret = unsafe {
             mpv_unobserve_property(self.handle,
                                    userdata)
