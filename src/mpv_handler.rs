@@ -10,9 +10,7 @@ use mpv_enums::*;
 use mpv_error::*;
 
 use std::os::raw::{c_void,c_char,c_ulong};
-use std::ffi::CStr;
 use std::{ffi, ptr};
-use std::mem;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 /// The main struct of the mpv-rs crate
@@ -25,100 +23,6 @@ pub struct MpvHandler {
     gl_context: Option<*mut mpv_opengl_cb_context>,
     update_available:AtomicBool
 }
-
-pub trait MpvFormat {
-    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,f:F);
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> Self;
-    fn get_mpv_format() -> MpvInternalFormat ;
-}
-
-impl MpvFormat for f64 {
-    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let mut cpy : f64= *self;
-        let pointer = &mut cpy as *mut _ as *mut c_void;
-        f(pointer)
-    }
-
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> f64 {
-        let mut ret_value = f64::default() ;
-        let pointer = &mut ret_value as *mut _ as *mut c_void;
-        f(pointer);
-        ret_value
-    }
-
-    fn get_mpv_format() -> MpvInternalFormat {
-        MpvInternalFormat::MPV_FORMAT_DOUBLE
-    }
-}
-
-impl MpvFormat for i64 {
-    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let mut cpy : i64= *self;
-        let pointer = &mut cpy as *mut _ as *mut c_void;
-        f(pointer)
-    }
-
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> i64 {
-        let mut ret_value = i64::default() ;
-        let pointer = &mut ret_value as *mut _ as *mut c_void;
-        f(pointer);
-        ret_value
-    }
-
-    fn get_mpv_format() -> MpvInternalFormat {
-        MpvInternalFormat::MPV_FORMAT_INT64
-    }
-}
-
-impl MpvFormat for bool {
-    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let mut cpy : ::std::os::raw::c_int = if *self == true {
-            1
-        } else {
-            0
-        } ;
-        let pointer = &mut cpy as *mut _ as *mut c_void;
-        f(pointer)
-    }
-
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> bool {
-        let mut temp_int = ::std::os::raw::c_int::default() ;
-        let pointer = &mut temp_int as *mut _ as *mut c_void;
-        f(pointer);
-        match temp_int {
-            0 => false,
-            1 => true,
-            _ => unreachable!()
-        }
-    }
-
-    fn get_mpv_format() -> MpvInternalFormat {
-        MpvInternalFormat::MPV_FORMAT_FLAG
-    }
-}
-
-impl<'a> MpvFormat for &'a str {
-    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let string = ffi::CString::new(*self).unwrap();
-        let ptr = string.as_ptr();
-        f(unsafe {mem::transmute(&ptr)})
-    }
-
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> &'a str {
-        let char_ptr : *mut c_char = ptr::null_mut() as *mut c_char;
-        f(unsafe {mem::transmute(&char_ptr)});
-        unsafe {
-            CStr::from_ptr(char_ptr)
-                 .to_str()
-                 .unwrap()
-        }
-    }
-
-    fn get_mpv_format() -> MpvInternalFormat {
-        MpvInternalFormat::MPV_FORMAT_STRING
-    }
-}
-
 
 impl MpvHandler {
 
