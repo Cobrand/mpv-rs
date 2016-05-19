@@ -336,7 +336,7 @@ impl ::std::default::Default for Struct_mpv_event_property {
 }
 pub type mpv_event_property = Struct_mpv_event_property;
 enum_from_primitive! {
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 #[repr(u32)]
 pub enum MpvLogLevel {
     MPV_LOG_LEVEL_NONE = 0,

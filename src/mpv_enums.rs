@@ -3,7 +3,8 @@ use std::ffi::CStr;
 use std::mem;
 
 use mpv_error::* ;
-use mpv_gen::{mpv_event_name,MpvFormat as MpvInternalFormat,mpv_event_property,mpv_event_end_file};
+use mpv_gen::{mpv_event_name,MpvFormat as MpvInternalFormat,mpv_event_property,mpv_event_end_file,
+    mpv_event_log_message};
 pub use mpv_gen::{MpvEventId, MpvSubApi, MpvLogLevel, MpvEndFileReason};
 use ::std::os::raw::{c_int,c_void,c_ulong,c_char};
 
@@ -22,16 +23,17 @@ impl fmt::Display for MpvEventId {
 }
 
 #[derive(Debug)]
-pub enum Event<'a,'b> {
+pub enum Event<'a,'b,'c> {
     Shutdown,
-    LogMessage,//(&'a str),
-    GetPropertyReply(&'a str,Result<(Format<'b>,u32)>),
-    SetPropertyReply(Result<u32>),
-    CommandReply(Result<u32>),
+    LogMessage{prefix:&'a str,level:&'b str,text:&'c str,log_level:MpvLogLevel},
+    GetPropertyReply{name:&'a str,result:Result<Format<'b>>,reply_userdata:u32},
+    SetPropertyReply(Result<()>,u32),
+    CommandReply(Result<()>,u32),
     StartFile,
     EndFile(Result<MpvEndFileReason>),
     FileLoaded,
-    TrackesSwitched,
+    TracksChanged,
+    TrackSwitched,
     Idle,
     Pause,
     Unpause,
@@ -42,22 +44,28 @@ pub enum Event<'a,'b> {
     MetadataUpdate,
     Seek,
     PlaybackRestart,
-    PropertyChange(&'a str,Format<'b>,u32),
+    PropertyChange{name:&'a str,change:Format<'b>,reply_userdata:u32},
     ChapterChange,
     QueueOverflow,
     /// Unused event
     Unused
 }
 
-pub fn to_event<'a,'b>(event_id:MpvEventId,
+pub fn to_event<'a,'b,'c>(event_id:MpvEventId,
                 error: c_int,
                 reply_userdata: c_ulong,
-                data:*mut c_void) -> Option<Event<'a,'b>> {
+                data:*mut c_void) -> Option<Event<'a,'b,'c>> {
     let userdata : u32 = reply_userdata as u32 ;
     match event_id {
         MpvEventId::MPV_EVENT_NONE                  => None,
         MpvEventId::MPV_EVENT_SHUTDOWN              => Some(Event::Shutdown),
-        MpvEventId::MPV_EVENT_LOG_MESSAGE           => unimplemented!(),
+        MpvEventId::MPV_EVENT_LOG_MESSAGE           => {
+            let log_message : mpv_event_log_message = unsafe {*(data as *mut mpv_event_log_message)};
+            let prefix = unsafe { CStr::from_ptr(log_message.prefix).to_str().unwrap() };
+            let level  = unsafe { CStr::from_ptr(log_message.level ).to_str().unwrap() };
+            let text   = unsafe { CStr::from_ptr(log_message.text  ).to_str().unwrap() };
+            Some(Event::LogMessage{prefix:prefix,level:level,text:text,log_level:log_message.log_level})
+        },
         MpvEventId::MPV_EVENT_GET_PROPERTY_REPLY    => {
             let property_struct : mpv_event_property = unsafe {*(data as *mut mpv_event_property)};
             let format_result = Format::get_from_c_void(property_struct.format,property_struct.data);
@@ -66,23 +74,24 @@ pub fn to_event<'a,'b>(event_id:MpvEventId,
                  .to_str()
                  .unwrap()
             };
-            let result = ret_to_result(error, (format_result,userdata));
-            Some(Event::GetPropertyReply(string,result))
+            let result = ret_to_result(error, format_result);
+            Some(Event::GetPropertyReply{name:string,result:result,reply_userdata:userdata})
         },
-        MpvEventId::MPV_EVENT_SET_PROPERTY_REPLY    => Some(Event::SetPropertyReply(ret_to_result(error, userdata))),
-        MpvEventId::MPV_EVENT_COMMAND_REPLY         => Some(Event::CommandReply(ret_to_result(error, userdata))),
+        MpvEventId::MPV_EVENT_SET_PROPERTY_REPLY    => Some(Event::SetPropertyReply(ret_to_result(error,()), userdata)),
+        MpvEventId::MPV_EVENT_COMMAND_REPLY         => Some(Event::CommandReply(ret_to_result(error,()), userdata)),
         MpvEventId::MPV_EVENT_START_FILE            => Some(Event::StartFile),
         MpvEventId::MPV_EVENT_END_FILE              => {
-            let end_file_reason : mpv_event_end_file = unsafe {*(data as *mut mpv_event_end_file)};
-            let result : Result<MpvEndFileReason> =
-            if end_file_reason.reason == 4
-            { Err(MpvError::from_i32(end_file_reason.error).unwrap()) }
-            else {Ok(MpvEndFileReason::from_i32(end_file_reason.reason).unwrap())};
+            let end_file : mpv_event_end_file = unsafe {*(data as *mut mpv_event_end_file)};
+            let end_file_reason = MpvEndFileReason::from_i32(end_file.reason).unwrap();
+            let result : Result<MpvEndFileReason> = match end_file_reason {
+                MpvEndFileReason::MPV_END_FILE_REASON_ERROR => Err(MpvError::from_i32(end_file.error).unwrap()),
+                _ => Ok(end_file_reason)
+            };
             Some(Event::EndFile(result))
         }
         MpvEventId::MPV_EVENT_FILE_LOADED           => Some(Event::FileLoaded),
-        MpvEventId::MPV_EVENT_TRACKS_CHANGED        => Some(Event::Unused),
-        MpvEventId::MPV_EVENT_TRACK_SWITCHED        => Some(Event::TrackesSwitched),
+        MpvEventId::MPV_EVENT_TRACKS_CHANGED        => Some(Event::TracksChanged),
+        MpvEventId::MPV_EVENT_TRACK_SWITCHED        => Some(Event::TrackSwitched),
         MpvEventId::MPV_EVENT_IDLE                  => Some(Event::Idle),
         MpvEventId::MPV_EVENT_PAUSE                 => Some(Event::Pause),
         MpvEventId::MPV_EVENT_UNPAUSE               => Some(Event::Unpause),
@@ -94,7 +103,16 @@ pub fn to_event<'a,'b>(event_id:MpvEventId,
         MpvEventId::MPV_EVENT_METADATA_UPDATE       => Some(Event::MetadataUpdate),
         MpvEventId::MPV_EVENT_SEEK                  => Some(Event::Seek),
         MpvEventId::MPV_EVENT_PLAYBACK_RESTART      => Some(Event::PlaybackRestart),
-        MpvEventId::MPV_EVENT_PROPERTY_CHANGE       => unimplemented!(),
+        MpvEventId::MPV_EVENT_PROPERTY_CHANGE       => {
+            let property_struct : mpv_event_property = unsafe {*(data as *mut mpv_event_property)};
+            let format_result = Format::get_from_c_void(property_struct.format,property_struct.data);
+            let string = unsafe {
+                CStr::from_ptr(property_struct.name)
+                 .to_str()
+                 .unwrap()
+            };
+            Some(Event::PropertyChange{name:string,change:format_result,reply_userdata:userdata})
+        },
         MpvEventId::MPV_EVENT_CHAPTER_CHANGE        => Some(Event::ChapterChange),
         MpvEventId::MPV_EVENT_QUEUE_OVERFLOW        => Some(Event::QueueOverflow),
     }
