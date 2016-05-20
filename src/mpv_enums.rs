@@ -5,7 +5,7 @@ use std::mem;
 use mpv_error::* ;
 use mpv_gen::{mpv_event_name,MpvFormat as MpvInternalFormat,mpv_event_property,mpv_event_end_file,
     mpv_event_log_message};
-pub use mpv_gen::{MpvEventId, SubApi, MpvLogLevel, MpvEndFileReason};
+pub use mpv_gen::{MpvEventId, SubApi, LogLevel, EndFileReason};
 use ::std::os::raw::{c_int,c_void,c_ulong,c_char};
 
 impl MpvEventId {
@@ -25,12 +25,12 @@ impl fmt::Display for MpvEventId {
 #[derive(Debug)]
 pub enum Event<'a,'b,'c> {
     Shutdown,
-    LogMessage{prefix:&'a str,level:&'b str,text:&'c str,log_level:MpvLogLevel},
+    LogMessage{prefix:&'a str,level:&'b str,text:&'c str,log_level:LogLevel},
     GetPropertyReply{name:&'a str,result:Result<Format<'b>>,reply_userdata:u32},
     SetPropertyReply(Result<()>,u32),
     CommandReply(Result<()>,u32),
     StartFile,
-    EndFile(Result<MpvEndFileReason>),
+    EndFile(Result<EndFileReason>),
     FileLoaded,
     TracksChanged,
     TrackSwitched,
@@ -82,9 +82,9 @@ pub fn to_event<'a,'b,'c>(event_id:MpvEventId,
         MpvEventId::MPV_EVENT_START_FILE            => Some(Event::StartFile),
         MpvEventId::MPV_EVENT_END_FILE              => {
             let end_file : mpv_event_end_file = unsafe {*(data as *mut mpv_event_end_file)};
-            let end_file_reason = MpvEndFileReason::from_i32(end_file.reason).unwrap();
-            let result : Result<MpvEndFileReason> = match end_file_reason {
-                MpvEndFileReason::MPV_END_FILE_REASON_ERROR => Err(Error::from_i32(end_file.error).unwrap()),
+            let end_file_reason = EndFileReason::from_i32(end_file.reason).unwrap();
+            let result : Result<EndFileReason> = match end_file_reason {
+                EndFileReason::MPV_END_FILE_REASON_ERROR => Err(Error::from_i32(end_file.error).unwrap()),
                 _ => Ok(end_file_reason)
             };
             Some(Event::EndFile(result))

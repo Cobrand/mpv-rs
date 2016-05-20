@@ -132,8 +132,8 @@ pub use mpv_error::{Error,Result};
 pub use mpv_handler::*;
 pub use mpv_enums::{
     SubApi,
-    MpvLogLevel,
-    MpvEndFileReason,
+    LogLevel,
+    EndFileReason,
     Event,
     Format
 };

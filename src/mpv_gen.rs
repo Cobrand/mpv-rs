@@ -338,7 +338,7 @@ pub type mpv_event_property = Struct_mpv_event_property;
 enum_from_primitive! {
 #[derive(Clone, Copy, Debug)]
 #[repr(u32)]
-pub enum MpvLogLevel {
+pub enum LogLevel {
     MPV_LOG_LEVEL_NONE = 0,
     MPV_LOG_LEVEL_FATAL = 10,
     MPV_LOG_LEVEL_ERROR = 20,
@@ -349,7 +349,7 @@ pub enum MpvLogLevel {
     MPV_LOG_LEVEL_TRACE = 70,
 }
 }
-pub type mpv_log_level = MpvLogLevel;
+pub type mpv_log_level = LogLevel;
 #[repr(C)]
 #[derive(Copy)]
 pub struct Struct_mpv_event_log_message {
@@ -372,7 +372,7 @@ pub type mpv_event_log_message = Struct_mpv_event_log_message;
 enum_from_primitive! {
 #[derive(Clone, Copy, Debug)]
 #[repr(u32)]
-pub enum MpvEndFileReason {
+pub enum EndFileReason {
     MPV_END_FILE_REASON_EOF = 0,
     MPV_END_FILE_REASON_STOP = 2,
     MPV_END_FILE_REASON_QUIT = 3,
@@ -380,7 +380,7 @@ pub enum MpvEndFileReason {
     MPV_END_FILE_REASON_REDIRECT = 5,
 }
 }
-pub type mpv_end_file_reason = MpvEndFileReason;
+pub type mpv_end_file_reason = EndFileReason;
 #[repr(C)]
 #[derive(Copy)]
 pub struct Struct_mpv_event_end_file {
