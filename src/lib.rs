@@ -32,8 +32,6 @@
 //!      * http://mpv.io/manual/master/#properties
 //!
 //!
-//!
-//!
 //! # Event loop
 //!
 //! In general, the API user should run an event loop in order to receive events.
@@ -133,10 +131,11 @@ mod mpv_handler;
 pub use mpv_error::{MpvError,Result};
 pub use mpv_handler::*;
 pub use mpv_enums::{
-    MpvEventId,
     MpvSubApi,
     MpvLogLevel,
-    MpvEndFileReason
+    MpvEndFileReason,
+    Event,
+    Format
 };
 
 /// Returns the MPV_CLIENT_API_VERSION the mpv source has been compiled with

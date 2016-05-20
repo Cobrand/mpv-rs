@@ -1,18 +1,15 @@
 use mpv_gen::{mpv_command, mpv_command_async, mpv_wait_event, mpv_create, mpv_initialize,
               mpv_terminate_destroy, mpv_handle, mpv_set_option,
-              Struct_mpv_event, mpv_set_property, mpv_set_property_async, mpv_get_property,
+              mpv_set_property, mpv_set_property_async, mpv_get_property,
               mpv_get_property_async, mpv_opengl_cb_get_proc_address_fn, mpv_get_sub_api,
               mpv_opengl_cb_uninit_gl, mpv_opengl_cb_init_gl, mpv_opengl_cb_draw,
               mpv_opengl_cb_context, mpv_observe_property, mpv_unobserve_property,
-              mpv_opengl_cb_set_update_callback,
-              MpvFormat as MpvInternalFormat};
+              mpv_opengl_cb_set_update_callback};
 use mpv_enums::*;
 use mpv_error::*;
 
-use std::os::raw::{c_void,c_char,c_ulong};
-use std::ffi::CStr;
+use std::os::raw::c_void;
 use std::{ffi, ptr};
-use std::mem;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 /// The main struct of the mpv-rs crate
@@ -25,100 +22,6 @@ pub struct MpvHandler {
     gl_context: Option<*mut mpv_opengl_cb_context>,
     update_available:AtomicBool
 }
-
-pub trait MpvFormat {
-    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,f:F);
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> Self;
-    fn get_mpv_format() -> MpvInternalFormat ;
-}
-
-impl MpvFormat for f64 {
-    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let mut cpy : f64= *self;
-        let pointer = &mut cpy as *mut _ as *mut c_void;
-        f(pointer)
-    }
-
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> f64 {
-        let mut ret_value = f64::default() ;
-        let pointer = &mut ret_value as *mut _ as *mut c_void;
-        f(pointer);
-        ret_value
-    }
-
-    fn get_mpv_format() -> MpvInternalFormat {
-        MpvInternalFormat::MPV_FORMAT_DOUBLE
-    }
-}
-
-impl MpvFormat for i64 {
-    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let mut cpy : i64= *self;
-        let pointer = &mut cpy as *mut _ as *mut c_void;
-        f(pointer)
-    }
-
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> i64 {
-        let mut ret_value = i64::default() ;
-        let pointer = &mut ret_value as *mut _ as *mut c_void;
-        f(pointer);
-        ret_value
-    }
-
-    fn get_mpv_format() -> MpvInternalFormat {
-        MpvInternalFormat::MPV_FORMAT_INT64
-    }
-}
-
-impl MpvFormat for bool {
-    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let mut cpy : ::std::os::raw::c_int = if *self == true {
-            1
-        } else {
-            0
-        } ;
-        let pointer = &mut cpy as *mut _ as *mut c_void;
-        f(pointer)
-    }
-
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> bool {
-        let mut temp_int = ::std::os::raw::c_int::default() ;
-        let pointer = &mut temp_int as *mut _ as *mut c_void;
-        f(pointer);
-        match temp_int {
-            0 => false,
-            1 => true,
-            _ => unreachable!()
-        }
-    }
-
-    fn get_mpv_format() -> MpvInternalFormat {
-        MpvInternalFormat::MPV_FORMAT_FLAG
-    }
-}
-
-impl<'a> MpvFormat for &'a str {
-    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let string = ffi::CString::new(*self).unwrap();
-        let ptr = string.as_ptr();
-        f(unsafe {mem::transmute(&ptr)})
-    }
-
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> &'a str {
-        let char_ptr : *mut c_char = ptr::null_mut() as *mut c_char;
-        f(unsafe {mem::transmute(&char_ptr)});
-        unsafe {
-            CStr::from_ptr(char_ptr)
-                 .to_str()
-                 .unwrap()
-        }
-    }
-
-    fn get_mpv_format() -> MpvInternalFormat {
-        MpvInternalFormat::MPV_FORMAT_STRING
-    }
-}
-
 
 impl MpvHandler {
 
@@ -415,7 +318,7 @@ impl MpvHandler {
     ///
     ///
 
-    pub fn wait_event(&mut self,timeout:f64) -> Option<Struct_mpv_event> {
+    pub fn wait_event<'a,'b,'c>(&mut self,timeout:f64) -> Option<Event<'a,'b,'c>> {
         let event = unsafe {
             let ptr = mpv_wait_event(self.handle, timeout);
             if ptr.is_null() {
@@ -423,10 +326,10 @@ impl MpvHandler {
             }
             *ptr
         };
-        match event.event_id {
-            MpvEventId::MPV_EVENT_NONE => None,
-            _ => Some(event),
-        }
+        to_event(event.event_id,
+                 event.error,
+                 event.reply_userdata,
+                 event.data)
     }
 
     pub fn observe_property<T:MpvFormat>(&mut self,name:&str,userdata:u16) -> Result<()>{
