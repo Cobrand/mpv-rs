@@ -133,7 +133,7 @@ impl MpvHandler {
         if result.is_ok(){
             let opengl_ctx = unsafe {
                 mpv_get_sub_api(self.handle,
-                                MpvSubApi::MPV_SUB_API_OPENGL_CB)
+                                SubApi::MPV_SUB_API_OPENGL_CB)
             } as *mut mpv_opengl_cb_context ;
             let ret = unsafe {
                 mpv_opengl_cb_init_gl(opengl_ctx, ptr::null(), get_proc_address, get_proc_address_ctx)

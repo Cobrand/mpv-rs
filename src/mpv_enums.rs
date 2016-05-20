@@ -5,7 +5,7 @@ use std::mem;
 use mpv_error::* ;
 use mpv_gen::{mpv_event_name,MpvFormat as MpvInternalFormat,mpv_event_property,mpv_event_end_file,
     mpv_event_log_message};
-pub use mpv_gen::{MpvEventId, MpvSubApi, MpvLogLevel, MpvEndFileReason};
+pub use mpv_gen::{MpvEventId, SubApi, MpvLogLevel, MpvEndFileReason};
 use ::std::os::raw::{c_int,c_void,c_ulong,c_char};
 
 impl MpvEventId {
