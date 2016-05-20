@@ -80,7 +80,7 @@ enum_from_primitive! {
 /// where the value is not supported, but the format itself is
 ///
 /// ```
-/// assert!(mpv.set_option("speed",-1.0).err() == MpvError::MPV_ERROR_UNINITIALIZED);
+/// assert!(mpv.set_option("speed",-1.0).err() == Error::MPV_ERROR_UNINITIALIZED);
 /// // setting option "speed" with a negative value makes no sense
 /// // however sending floats for speed make sense, hence it did not send MPV_ERROR_OPTION_FORMAT
 /// ```
@@ -91,7 +91,7 @@ enum_from_primitive! {
 /// ## Example
 ///
 /// ```
-/// assert!(mpv.set_option("option_that_does_not_exist",0.5).err() == MpvError::MPV_ERROR_OPTION_NOT_FOUND);
+/// assert!(mpv.set_option("option_that_does_not_exist",0.5).err() == Error::MPV_ERROR_OPTION_NOT_FOUND);
 /// ```
 ///
 /// # MPV_ERROR_OPTION_FORMAT
@@ -107,7 +107,7 @@ enum_from_primitive! {
 ///
 /// ```
 /// assert!(mpv.set_option("loop","2").is_ok());
-/// assert!(mpv.set_option("sid",4.5).err() == MpvError::MPV_ERROR_OPTION_FORMAT);
+/// assert!(mpv.set_option("sid",4.5).err() == Error::MPV_ERROR_OPTION_FORMAT);
 /// ```
 ///
 /// # MPV_ERROR_OPTION_ERROR
@@ -152,7 +152,7 @@ enum_from_primitive! {
 /// # MPV_ERROR_NOT_IMPLEMENTED
 /// The libmpv API function which was called is a stub only
 /// Note that unimplemented mpv-rs functions will simply panic with unimplemented!()
-pub enum MpvError {
+pub enum Error {
     MPV_ERROR_SUCCESS = 0,
     MPV_ERROR_EVENT_QUEUE_FULL = -1,
     MPV_ERROR_NOMEM = -2,

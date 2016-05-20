@@ -1,13 +1,13 @@
-use std::error::Error;
+use ::std::error::Error as StdError ;
 use std::{result, ffi, fmt};
 pub use num::FromPrimitive;
 
 use mpv_gen::mpv_error_string;
-pub use mpv_gen::MpvError;
+pub use mpv_gen::Error;
 
-pub type Result<T> = result::Result<T, MpvError>;
+pub type Result<T> = result::Result<T, Error>;
 
-impl Error for MpvError {
+impl StdError for Error {
     fn description(&self) -> &str {
         let str_ptr = unsafe { mpv_error_string(*self as ::std::os::raw::c_int) };
         assert!(!str_ptr.is_null());
@@ -15,7 +15,7 @@ impl Error for MpvError {
     }
 }
 
-impl fmt::Display for MpvError {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} ({:?})", self.description(), self)
     }
@@ -23,7 +23,7 @@ impl fmt::Display for MpvError {
 
 pub fn ret_to_result<T>(ret: i32, default: T) -> Result<T> {
     if ret < 0 {
-        Err(MpvError::from_i32(ret).unwrap())
+        Err(Error::from_i32(ret).unwrap())
     } else {
         Ok(default)
     }

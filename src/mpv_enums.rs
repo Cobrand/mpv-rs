@@ -84,7 +84,7 @@ pub fn to_event<'a,'b,'c>(event_id:MpvEventId,
             let end_file : mpv_event_end_file = unsafe {*(data as *mut mpv_event_end_file)};
             let end_file_reason = MpvEndFileReason::from_i32(end_file.reason).unwrap();
             let result : Result<MpvEndFileReason> = match end_file_reason {
-                MpvEndFileReason::MPV_END_FILE_REASON_ERROR => Err(MpvError::from_i32(end_file.error).unwrap()),
+                MpvEndFileReason::MPV_END_FILE_REASON_ERROR => Err(Error::from_i32(end_file.error).unwrap()),
                 _ => Ok(end_file_reason)
             };
             Some(Event::EndFile(result))

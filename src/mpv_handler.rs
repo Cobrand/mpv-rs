@@ -71,7 +71,7 @@ impl MpvHandler {
     /// yet to be decided.)
     ///
     /// Returns a std::Result that contains an MpvHandler if successful,
-    /// or a MpvError is the creation failed. Currently, errors can happen in the following
+    /// or an Error is the creation failed. Currently, errors can happen in the following
     /// situations :
     ///         - out of memory
     ///         - LC_NUMERIC is not set to "C" (see general remarks)
@@ -83,7 +83,7 @@ impl MpvHandler {
     pub fn create() -> Result<MpvHandler> {
         let handle = unsafe { mpv_create() };
         if handle == ptr::null_mut() {
-            return Err(MpvError::MPV_ERROR_NOMEM);
+            return Err(Error::MPV_ERROR_NOMEM);
         }
         ret_to_result(0,MpvHandler { gl_context: None,
                                      handle: handle,
