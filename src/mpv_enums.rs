@@ -4,7 +4,7 @@ use std::mem;
 
 use mpv_error::* ;
 use mpv_gen::{mpv_event_name,MpvFormat as MpvInternalFormat,mpv_event_property,mpv_event_end_file,
-    mpv_event_log_message};
+    mpv_event_log_message,mpv_free};
 pub use mpv_gen::{MpvEventId, SubApi, LogLevel, EndFileReason};
 use ::std::os::raw::{c_int,c_void,c_ulong,c_char};
 
@@ -252,11 +252,13 @@ impl<'a> MpvFormat for &'a str {
     fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> &'a str {
         let char_ptr : *mut c_char = ptr::null_mut() as *mut c_char;
         f(unsafe {mem::transmute(&char_ptr)});
-        unsafe {
+        let return_str = unsafe {
             CStr::from_ptr(char_ptr)
                  .to_str()
                  .unwrap()
-        }
+        };
+        unsafe {mpv_free(mem::transmute(char_ptr))};
+        return_str
     }
 
     fn get_mpv_format() -> MpvInternalFormat {
