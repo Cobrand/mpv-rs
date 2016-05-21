@@ -332,7 +332,7 @@ impl MpvHandler {
                  event.data)
     }
 
-    pub fn observe_property<T:MpvFormat>(&mut self,name:&str,userdata:u16) -> Result<()>{
+    pub fn observe_property<T:MpvFormat>(&mut self,name:&str,userdata:u32) -> Result<()>{
         let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
         let ret = unsafe {
             mpv_observe_property(self.handle,
@@ -343,7 +343,7 @@ impl MpvHandler {
         ret_to_result(ret,())
     }
 
-    pub fn unobserve_property(&mut self,userdata:u16) -> Result<()> {
+    pub fn unobserve_property(&mut self,userdata:u32) -> Result<()> {
         let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
         let ret = unsafe {
             mpv_unobserve_property(self.handle,
