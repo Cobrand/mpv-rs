@@ -1,7 +1,14 @@
 [package]
 name = "mpv"
-version = "0.0.2"
+version = "0.1.0"
 authors = ["Cobrand <cobrandw@gmail.com>","yamakaky"]
+description = "safe mpv bindings for Rust"
+homepage = "https://github.com/Cobrand/mpv-rs"
+repository = "https://github.com/Cobrand/mpv-rs"
+
+keywords = ["mpv", "video","player","media","binding"]
+license = "Zlib"
+license-file = "LICENSE"
 
 [dependencies]
 log = "0.3"
