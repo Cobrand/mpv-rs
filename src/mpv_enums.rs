@@ -3,6 +3,7 @@ use std::ffi::CStr;
 use std::mem;
 
 use mpv_error::* ;
+use mpv_types::OsdString;
 use mpv_gen::{mpv_event_name,MpvFormat as MpvInternalFormat,mpv_event_property,mpv_event_end_file,
     mpv_event_log_message,mpv_free};
 pub use mpv_gen::{MpvEventId, SubApi, LogLevel, EndFileReason};
@@ -149,6 +150,7 @@ impl<'a> Format<'a> {
                          .to_str()
                          .unwrap()
                 })
+                // TODO : mpv_free
             },
             MpvInternalFormat::MPV_FORMAT_OSD_STRING => {
                 let char_ptr : *mut c_char =unsafe{ mem::transmute(*(pointer as *mut *mut c_char))};
@@ -157,6 +159,7 @@ impl<'a> Format<'a> {
                          .to_str()
                          .unwrap()
                 })
+                // TODO : mpv_free
             },
             MpvInternalFormat::MPV_FORMAT_DOUBLE => {
                 Format::Double(unsafe { *(pointer as *mut f64) })
@@ -263,5 +266,29 @@ impl<'a> MpvFormat for &'a str {
 
     fn get_mpv_format() -> MpvInternalFormat {
         MpvInternalFormat::MPV_FORMAT_STRING
+    }
+}
+
+impl<'a> MpvFormat for OsdString<'a> {
+    fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
+        let string = ffi::CString::new(self.string).unwrap();
+        let ptr = string.as_ptr();
+        f(unsafe {mem::transmute(&ptr)})
+    }
+
+    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> OsdString<'a> {
+        let char_ptr : *mut c_char = ptr::null_mut() as *mut c_char;
+        f(unsafe {mem::transmute(&char_ptr)});
+        let return_str = unsafe {
+            CStr::from_ptr(char_ptr)
+                 .to_str()
+                 .unwrap()
+        };
+        unsafe {mpv_free(mem::transmute(char_ptr))};
+        OsdString{string:return_str}
+    }
+
+    fn get_mpv_format() -> MpvInternalFormat {
+        MpvInternalFormat::MPV_FORMAT_OSD_STRING
     }
 }
