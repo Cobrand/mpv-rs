@@ -27,9 +27,10 @@
 //! retrieving playback progress, and so on.
 //!
 //! These are documented elsewhere:
-//!      * http://mpv.io/manual/master/#options
-//!      * http://mpv.io/manual/master/#list-of-input-commands
-//!      * http://mpv.io/manual/master/#properties
+//!
+//! * http://mpv.io/manual/master/#options
+//! * http://mpv.io/manual/master/#list-of-input-commands
+//! * http://mpv.io/manual/master/#properties
 //!
 //!
 //! # Event loop
@@ -88,21 +89,21 @@
 //! This documents basic requirements on the C environment. This is especially
 //! important if mpv is used as library with mpv_create(), such as with this mpv-rs crate.
 //!
-//! - The LC_NUMERIC locale category must be set to "C". If your program calls
+//! * The LC_NUMERIC locale category must be set to "C". If your program calls
 //!   setlocale(), be sure not to use LC_ALL, or if you do, reset LC_NUMERIC
 //!   to its sane default: setlocale(LC_NUMERIC, "C").
-//! - If a X11 based VO is used, mpv will set the xlib error handler. This error
+//! * If a X11 based VO is used, mpv will set the xlib error handler. This error
 //!   handler is process-wide, and there's no proper way to share it with other
 //!   xlib users within the same process. This might confuse GUI toolkits.
-//! - mpv uses some other libraries that are not library-safe, such as Fribidi
+//! * mpv uses some other libraries that are not library-safe, such as Fribidi
 //!   (used through libass), ALSA, FFmpeg, and possibly more.
-//! - The FPU precision must be set at least to double precision.
-//! - On Windows, mpv will call timeBeginPeriod(1).
-//! - On UNIX, every mpv_initialize() call will block SIGPIPE. This is done
+//! * The FPU precision must be set at least to double precision.
+//! * On Windows, mpv will call timeBeginPeriod(1).
+//! * On UNIX, every mpv_initialize() call will block SIGPIPE. This is done
 //!   because FFmpeg makes unsafe use of OpenSSL and GnuTLS, which can raise
 //!   this signal under certain circumstances. Once these libraries (or FFmpeg)
 //!   are fixed, libmpv will not block the signal anymore.
-//! - On memory exhaustion, mpv will kill the process.
+//! * On memory exhaustion, mpv will kill the process.
 //!
 //! # Encoding of filenames
 //!
