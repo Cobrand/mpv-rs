@@ -1,5 +1,5 @@
-use ::std::error::Error as StdError ;
-use std::{result, ffi, fmt};
+use std::{result, ffi, fmt, error};
+use std::error::Error as StdError;
 pub use num::FromPrimitive;
 
 use mpv_gen::mpv_error_string;
@@ -7,7 +7,7 @@ pub use mpv_gen::Error;
 
 pub type Result<T> = result::Result<T, Error>;
 
-impl StdError for Error {
+impl error::Error for Error {
     fn description(&self) -> &str {
         let str_ptr = unsafe { mpv_error_string(*self as ::std::os::raw::c_int) };
         assert!(!str_ptr.is_null());

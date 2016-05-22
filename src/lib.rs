@@ -137,9 +137,11 @@ pub use mpv_enums::{
     LogLevel,
     EndFileReason,
     Event,
+    MpvFormat,
     Format
 };
 pub use mpv_types::* ;
+pub use mpv_gen::mpv_opengl_cb_get_proc_address_fn;
 
 /// Returns the MPV_CLIENT_API_VERSION the mpv source has been compiled with
 ///
