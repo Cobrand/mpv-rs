@@ -249,18 +249,20 @@ impl<'a> MpvFormat for &'a str {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
         let string = ffi::CString::new(*self).unwrap();
         let ptr = string.as_ptr();
+        // transmute needed for *const -> *mut
+        // Should be ok since mpv doesn't modify *ptr
         f(unsafe {mem::transmute(&ptr)})
     }
 
     fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> &'a str {
-        let char_ptr : *mut c_char = ptr::null_mut() as *mut c_char;
-        f(unsafe {mem::transmute(&char_ptr)});
+        let mut char_ptr = ptr::null_mut() as *mut c_void;
+        f(&mut char_ptr as *mut *mut c_void as *mut c_void);
         let return_str = unsafe {
-            CStr::from_ptr(char_ptr)
+            CStr::from_ptr(char_ptr as *mut c_char)
                  .to_str()
                  .unwrap()
         };
-        unsafe {mpv_free(mem::transmute(char_ptr))};
+        unsafe {mpv_free(char_ptr)};
         return_str
     }
 
@@ -273,14 +275,16 @@ impl<'a> MpvFormat for OsdString<'a> {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
         let string = ffi::CString::new(self.string).unwrap();
         let ptr = string.as_ptr();
+        // transmute needed for *const -> *mut
+        // Should be ok since mpv doesn't modify *ptr
         f(unsafe {mem::transmute(&ptr)})
     }
 
     fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> OsdString<'a> {
-        let char_ptr : *mut c_char = ptr::null_mut() as *mut c_char;
-        f(unsafe {mem::transmute(&char_ptr)});
+        let mut char_ptr = ptr::null_mut() as *mut c_void;
+        f(&mut char_ptr as *mut *mut c_void as *mut c_void);
         let return_str = unsafe {
-            CStr::from_ptr(char_ptr)
+            CStr::from_ptr(char_ptr as *mut c_char)
                  .to_str()
                  .unwrap()
         };
