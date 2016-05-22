@@ -56,12 +56,12 @@ pub fn to_event<'a,'b,'c>(event_id:MpvEventId,
                 error: c_int,
                 reply_userdata: c_ulong,
                 data:*mut c_void) -> Option<Event<'a,'b,'c>> {
-    let userdata : u32 = reply_userdata as u32 ;
+    let userdata = reply_userdata as u32 ;
     match event_id {
         MpvEventId::MPV_EVENT_NONE                  => None,
         MpvEventId::MPV_EVENT_SHUTDOWN              => Some(Event::Shutdown),
         MpvEventId::MPV_EVENT_LOG_MESSAGE           => {
-            let log_message : mpv_event_log_message = unsafe {*(data as *mut mpv_event_log_message)};
+            let log_message = unsafe {*(data as *mut mpv_event_log_message)};
             let prefix = unsafe { CStr::from_ptr(log_message.prefix).to_str().unwrap() };
             let level  = unsafe { CStr::from_ptr(log_message.level ).to_str().unwrap() };
             let text   = unsafe { CStr::from_ptr(log_message.text  ).to_str().unwrap() };

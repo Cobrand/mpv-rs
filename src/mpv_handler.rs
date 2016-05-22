@@ -206,7 +206,7 @@ impl MpvHandler {
 
     /// Set a property asynchronously
     pub fn set_property_async<T : MpvFormat>(&mut self, property: &str, value : T, userdata:u32) -> Result<()>{
-        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
+        let userdata = userdata as ::std::os::raw::c_ulong;
         let mut ret = 0 ;
         let format = T::get_mpv_format();
         value.call_as_c_void(|ptr:*mut c_void|{
@@ -224,9 +224,8 @@ impl MpvHandler {
     /// Get a property synchronously
     pub fn get_property<T : MpvFormat>(&self, property: &str) -> Result<T> {
         let mut ret = 0 ;
-        let result : T ;
         let format = T::get_mpv_format();
-        result = T::get_from_c_void(|ptr:*mut c_void|{
+        let result = T::get_from_c_void(|ptr:*mut c_void|{
             ret = unsafe {
                 mpv_get_property(self.handle,
                                  ffi::CString::new(property).unwrap().as_ptr(),
@@ -239,7 +238,7 @@ impl MpvHandler {
 
     /// Get a property asynchronously
     pub fn get_property_async<T : MpvFormat>(&self, property: &str, userdata :u32) -> Result<()> {
-        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
+        let userdata = userdata as ::std::os::raw::c_ulong;
         let ret = unsafe {
             mpv_get_property_async(self.handle,
                                    userdata,
@@ -289,7 +288,7 @@ impl MpvHandler {
 
     /// Send a command asynchronously
     pub fn command_async(&mut self, command: &[&str], userdata :u32) -> Result<()> {
-        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
+        let userdata = userdata as ::std::os::raw::c_ulong;
         let command_cstring: Vec<_> = command.iter()
                                              .map(|item| ffi::CString::new(*item).unwrap())
                                              .collect();
@@ -333,7 +332,7 @@ impl MpvHandler {
     }
 
     pub fn observe_property<T:MpvFormat>(&mut self,name:&str,userdata:u32) -> Result<()>{
-        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
+        let userdata = userdata as ::std::os::raw::c_ulong;
         let ret = unsafe {
             mpv_observe_property(self.handle,
                                  userdata,
@@ -344,7 +343,7 @@ impl MpvHandler {
     }
 
     pub fn unobserve_property(&mut self,userdata:u32) -> Result<()> {
-        let userdata : ::std::os::raw::c_ulong = userdata as ::std::os::raw::c_ulong;
+        let userdata = userdata as ::std::os::raw::c_ulong;
         let ret = unsafe {
             mpv_unobserve_property(self.handle,
                                    userdata)
@@ -353,8 +352,9 @@ impl MpvHandler {
     }
 
     unsafe extern "C" fn update_draw(cb_ctx: *mut ::std::os::raw::c_void) {
-        let ptr : *mut MpvHandler = cb_ctx as *mut MpvHandler ;
-        let mpv : &mut MpvHandler = &mut (*ptr) ;
+        let ptr = cb_ctx as *mut MpvHandler ;
+        assert!(!ptr.is_null());
+        let mpv = &mut (*ptr) ;
         mpv.update_available.store(true, Ordering::Relaxed);
     }
 
@@ -365,10 +365,10 @@ impl MpvHandler {
 
 impl Drop for MpvHandler {
     fn drop(&mut self) {
-        if self.gl_context.is_some(){
+        if let Some(gl_ctx) = self.gl_context {
             unsafe {
                 // careful : always uninit gl before terminate_destroy mpv
-                mpv_opengl_cb_uninit_gl(self.gl_context.unwrap());
+                mpv_opengl_cb_uninit_gl(gl_ctx);
             }
         }
         unsafe {
