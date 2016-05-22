@@ -24,10 +24,10 @@ impl fmt::Display for MpvEventId {
 }
 
 #[derive(Debug)]
-pub enum Event<'a,'b,'c> {
+pub enum Event<'a> {
     Shutdown,
-    LogMessage{prefix:&'a str,level:&'b str,text:&'c str,log_level:LogLevel},
-    GetPropertyReply{name:&'a str,result:Result<Format<'b>>,reply_userdata:u32},
+    LogMessage{prefix:&'static str,level:&'static str,text:&'static str,log_level:LogLevel},
+    GetPropertyReply{name:&'static str,result:Result<Format<'a>>,reply_userdata:u32},
     SetPropertyReply(Result<()>,u32),
     CommandReply(Result<()>,u32),
     StartFile,
@@ -45,17 +45,17 @@ pub enum Event<'a,'b,'c> {
     MetadataUpdate,
     Seek,
     PlaybackRestart,
-    PropertyChange{name:&'a str,change:Format<'b>,reply_userdata:u32},
+    PropertyChange{name:&'static str,change:Format<'a>,reply_userdata:u32},
     ChapterChange,
     QueueOverflow,
     /// Unused event
     Unused
 }
 
-pub fn to_event<'a,'b,'c>(event_id:MpvEventId,
+pub fn to_event<'a>(event_id:MpvEventId,
                 error: c_int,
                 reply_userdata: c_ulong,
-                data:*mut c_void) -> Option<Event<'a,'b,'c>> {
+                data:*mut c_void) -> Option<Event<'a>> {
     let userdata = reply_userdata as u32 ;
     match event_id {
         MpvEventId::MPV_EVENT_NONE                  => None,
@@ -68,7 +68,7 @@ pub fn to_event<'a,'b,'c>(event_id:MpvEventId,
             Some(Event::LogMessage{prefix:prefix,level:level,text:text,log_level:log_message.log_level})
         },
         MpvEventId::MPV_EVENT_GET_PROPERTY_REPLY    => {
-            let property_struct : mpv_event_property = unsafe {*(data as *mut mpv_event_property)};
+            let property_struct = unsafe {*(data as *mut mpv_event_property)};
             let format_result = Format::get_from_c_void(property_struct.format,property_struct.data);
             let string = unsafe {
                 CStr::from_ptr(property_struct.name)
@@ -82,9 +82,9 @@ pub fn to_event<'a,'b,'c>(event_id:MpvEventId,
         MpvEventId::MPV_EVENT_COMMAND_REPLY         => Some(Event::CommandReply(ret_to_result(error,()), userdata)),
         MpvEventId::MPV_EVENT_START_FILE            => Some(Event::StartFile),
         MpvEventId::MPV_EVENT_END_FILE              => {
-            let end_file : mpv_event_end_file = unsafe {*(data as *mut mpv_event_end_file)};
+            let end_file = unsafe {*(data as *mut mpv_event_end_file)};
             let end_file_reason = EndFileReason::from_i32(end_file.reason).unwrap();
-            let result : Result<EndFileReason> = match end_file_reason {
+            let result = match end_file_reason {
                 EndFileReason::MPV_END_FILE_REASON_ERROR => Err(Error::from_i32(end_file.error).unwrap()),
                 _ => Ok(end_file_reason)
             };
@@ -105,14 +105,14 @@ pub fn to_event<'a,'b,'c>(event_id:MpvEventId,
         MpvEventId::MPV_EVENT_SEEK                  => Some(Event::Seek),
         MpvEventId::MPV_EVENT_PLAYBACK_RESTART      => Some(Event::PlaybackRestart),
         MpvEventId::MPV_EVENT_PROPERTY_CHANGE       => {
-            let property_struct : mpv_event_property = unsafe {*(data as *mut mpv_event_property)};
+            let property_struct = unsafe {*(data as *mut mpv_event_property)};
             let format_result = Format::get_from_c_void(property_struct.format,property_struct.data);
-            let string = unsafe {
+            let name = unsafe {
                 CStr::from_ptr(property_struct.name)
                  .to_str()
                  .unwrap()
             };
-            Some(Event::PropertyChange{name:string,change:format_result,reply_userdata:userdata})
+            Some(Event::PropertyChange{name:name,change:format_result,reply_userdata:userdata})
         },
         MpvEventId::MPV_EVENT_CHAPTER_CHANGE        => Some(Event::ChapterChange),
         MpvEventId::MPV_EVENT_QUEUE_OVERFLOW        => Some(Event::QueueOverflow),
@@ -144,7 +144,7 @@ impl<'a> Format<'a> {
                 Format::Flag(unsafe { *(pointer as *mut bool) })
             },
             MpvInternalFormat::MPV_FORMAT_STRING => {
-                let char_ptr : *mut c_char =unsafe{ mem::transmute(*(pointer as *mut *mut c_char))};
+                let char_ptr = unsafe {*(pointer as *mut *mut c_char)};
                 Format::Str(unsafe {
                     CStr::from_ptr(char_ptr)
                          .to_str()
@@ -153,7 +153,7 @@ impl<'a> Format<'a> {
                 // TODO : mpv_free
             },
             MpvInternalFormat::MPV_FORMAT_OSD_STRING => {
-                let char_ptr : *mut c_char =unsafe{ mem::transmute(*(pointer as *mut *mut c_char))};
+                let char_ptr = unsafe{ *(pointer as *mut *mut c_char)};
                 Format::OsdStr(unsafe {
                     CStr::from_ptr(char_ptr)
                          .to_str()
@@ -182,13 +182,13 @@ pub trait MpvFormat {
 
 impl MpvFormat for f64 {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let mut cpy : f64= *self;
+        let mut cpy = *self;
         let pointer = &mut cpy as *mut _ as *mut c_void;
         f(pointer)
     }
 
     fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> f64 {
-        let mut ret_value = f64::default() ;
+        let mut ret_value = 0.0;
         let pointer = &mut ret_value as *mut _ as *mut c_void;
         f(pointer);
         ret_value
@@ -201,13 +201,13 @@ impl MpvFormat for f64 {
 
 impl MpvFormat for i64 {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let mut cpy : i64= *self;
+        let mut cpy = *self;
         let pointer = &mut cpy as *mut _ as *mut c_void;
         f(pointer)
     }
 
     fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> i64 {
-        let mut ret_value = i64::default() ;
+        let mut ret_value = 0;
         let pointer = &mut ret_value as *mut _ as *mut c_void;
         f(pointer);
         ret_value
@@ -220,7 +220,7 @@ impl MpvFormat for i64 {
 
 impl MpvFormat for bool {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let mut cpy : ::std::os::raw::c_int = if *self == true {
+        let mut cpy = if *self {
             1
         } else {
             0
@@ -230,7 +230,7 @@ impl MpvFormat for bool {
     }
 
     fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> bool {
-        let mut temp_int = ::std::os::raw::c_int::default() ;
+        let mut temp_int = c_int::default() ;
         let pointer = &mut temp_int as *mut _ as *mut c_void;
         f(pointer);
         match temp_int {

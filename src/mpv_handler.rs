@@ -317,7 +317,7 @@ impl MpvHandler {
     ///
     ///
 
-    pub fn wait_event<'a,'b,'c>(&mut self,timeout:f64) -> Option<Event<'a,'b,'c>> {
+    pub fn wait_event<'a>(&mut self,timeout:f64) -> Option<Event<'a>> {
         let event = unsafe {
             let ptr = mpv_wait_event(self.handle, timeout);
             if ptr.is_null() {
