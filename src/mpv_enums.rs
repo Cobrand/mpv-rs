@@ -10,7 +10,7 @@ pub use mpv_gen::{MpvEventId, SubApi, LogLevel, EndFileReason};
 use ::std::os::raw::{c_int,c_void,c_ulong,c_char};
 
 impl MpvEventId {
-    pub fn to_str(&self) -> &str {
+    pub fn as_str(&self) -> &str {
         let str_ptr = unsafe { mpv_event_name(*self) };
         assert!(!str_ptr.is_null());
         unsafe { ffi::CStr::from_ptr(str_ptr).to_str().unwrap() }
@@ -19,7 +19,7 @@ impl MpvEventId {
 
 impl fmt::Display for MpvEventId {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} ({:?})", self.to_str(), self)
+        write!(f, "{} ({:?})", self.as_str(), self)
     }
 }
 
