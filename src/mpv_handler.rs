@@ -138,18 +138,18 @@ impl MpvHandler {
             let ret = unsafe {
                 mpv_opengl_cb_init_gl(opengl_ctx, ptr::null(), get_proc_address, get_proc_address_ctx)
             };
-            self.gl_context = Some(opengl_ctx) ;
             // Actually using the opengl_cb state has to be explicitly requested.
             // Otherwise, mpv will create a separate platform window.
 
             // Additional callback
-            unsafe {mpv_opengl_cb_set_update_callback(self.gl_context.unwrap(),
+            unsafe {mpv_opengl_cb_set_update_callback(opengl_ctx,
                                                       Some(Self::update_draw),
                                                       self as *mut _ as *mut c_void)};
 
+            self.gl_context = Some(opengl_ctx) ;
             ret_to_result(ret,())
         } else {
-            Err(result.err().unwrap())
+            result
         }
     }
 
