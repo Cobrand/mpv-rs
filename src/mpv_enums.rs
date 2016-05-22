@@ -130,12 +130,12 @@ pub enum Format<'a>{
 
 impl<'a> Format<'a> {
     pub fn get_mpv_format(&self) -> MpvInternalFormat {
-        match self {
-            &Format::Flag(_) => MpvInternalFormat::MPV_FORMAT_FLAG,
-            &Format::Str(_) => MpvInternalFormat::MPV_FORMAT_STRING,
-            &Format::Double(_) => MpvInternalFormat::MPV_FORMAT_DOUBLE,
-            &Format::Int(_) => MpvInternalFormat::MPV_FORMAT_INT64,
-            &Format::OsdStr(_) => MpvInternalFormat::MPV_FORMAT_OSD_STRING,
+        match *self {
+            Format::Flag(_) => MpvInternalFormat::MPV_FORMAT_FLAG,
+            Format::Str(_) => MpvInternalFormat::MPV_FORMAT_STRING,
+            Format::Double(_) => MpvInternalFormat::MPV_FORMAT_DOUBLE,
+            Format::Int(_) => MpvInternalFormat::MPV_FORMAT_INT64,
+            Format::OsdStr(_) => MpvInternalFormat::MPV_FORMAT_OSD_STRING,
         }
     }
     pub fn get_from_c_void(format:MpvInternalFormat,pointer:*mut c_void) -> Self {
