@@ -8,7 +8,6 @@ repository = "https://github.com/Cobrand/mpv-rs"
 
 keywords = ["mpv", "video","player","media","binding"]
 license = "Zlib"
-license-file = "LICENSE"
 
 [dependencies]
 log = "0.3"
