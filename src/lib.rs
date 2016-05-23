@@ -144,11 +144,11 @@ pub use mpv_types::* ;
 pub use mpv_gen::mpv_opengl_cb_get_proc_address_fn;
 
 /// Returns the MPV_CLIENT_API_VERSION the mpv source has been compiled with
-///
+/// as (major_v,minor_v)
 
-pub fn client_api_version() -> u32 {
+pub fn client_api_version() -> (u16,u16) {
     let api_version : ::std::os::raw::c_ulong = unsafe {
         mpv_gen::mpv_client_api_version()
     };
-    api_version as u32
+    ((api_version >> 16) as u16, (api_version & 0xFFFF) as u16)
 }

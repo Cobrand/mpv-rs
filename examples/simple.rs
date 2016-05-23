@@ -49,7 +49,8 @@ fn simple_example(video_path: &Path) {
 
 fn main() {
     let args: Vec<_> = env::args().collect();
-    println!("MPV_API_VERSION : {}", mpv::client_api_version());
+    let (mpv_major_api_v,mpv_minor_api_v) = mpv::client_api_version();
+    println!("MPV_API_VERSION : v{}.{}",mpv_major_api_v,mpv_minor_api_v);
     if args.len() < 2 {
         println!("Usage: ./simple [any mp4, avi, mkv, ... file]");
     } else {
