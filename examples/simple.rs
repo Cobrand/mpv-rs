@@ -5,17 +5,19 @@ use std::env;
 use std::path::Path;
 
 fn simple_example(video_path: &Path) {
-    let mut mpv = mpv::MpvHandler::create().expect("Error while creating MPV");
+    let mut mpv_builder = mpv::MpvHandlerBuilder::new().expect("Failed to init MPV builder");
     if video_path.is_file() {
         let video_path = video_path.to_str().expect("Expected a string for Path, got None");
 
         // set option "sid" to "no" (no subtitles)
         // mpv options should be set before initializing
-        mpv.set_option("sid","no").unwrap();
+        mpv_builder.set_option("sid","no").unwrap();
 
-        mpv.set_option("osc",true).unwrap();
+        // enable On Screen Controller (disabled with libmpv by default)
+        mpv_builder.set_option("osc",true).unwrap();
 
-        mpv.init().expect("Failed to init MPV");
+        let mut mpv_box : Box<mpv::MpvHandler> = mpv_builder.build().expect("Failed to build MPV handler");
+        let mut mpv = mpv_box.as_mut();
 
         mpv.command(&["loadfile", video_path as &str])
            .expect("Error loading file");
