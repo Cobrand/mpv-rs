@@ -4,7 +4,6 @@ extern crate sdl2_sys;
 #[macro_use]
 extern crate log;
 
-// use mpv::mpv;
 use std::env;
 use std::path::Path;
 use std::os::raw::{c_void,c_char};
@@ -54,8 +53,9 @@ fn sdl_example(video_path: &Path) {
                 .gl_set_context_to_current()
                 .unwrap();
         let ptr = &mut video_subsystem as *mut _ as *mut c_void;
-        let mut mpv = mpv::MpvHandler::create().expect("Error while creating MPV");
-        mpv.init_with_gl(Some(get_proc_address), ptr).expect("Error while initializing MPV");
+        let mpv_builder = mpv::MpvHandlerBuilder::new().expect("Error while creating MPV builder");
+        let mut mpv_box : Box<mpv::MpvHandler> = mpv_builder.build_with_gl(Some(get_proc_address), ptr).expect("Error while initializing MPV with opengl");
+        let mut mpv = mpv_box.as_mut();
         mpv.observe_property::<bool>("pause",5).unwrap();
         let video_path = video_path.to_str().expect("Expected a string for Path, got None");
         mpv.command(&["loadfile", video_path as &str])

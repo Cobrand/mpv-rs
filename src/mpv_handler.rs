@@ -11,7 +11,7 @@ use mpv_error::*;
 use std::os::raw::c_void;
 use std::{ffi, ptr};
 use std::sync::atomic::{AtomicBool, Ordering};
-
+use std::boxed::Box;
 /// The main struct of the mpv-rs crate
 ///
 /// Almost every function from the libmpv API needs a context, and sometimes an opengl context,
@@ -23,93 +23,80 @@ pub struct MpvHandler {
     update_available:AtomicBool
 }
 
-impl MpvHandler {
+pub struct MpvHandlerBuilder {
+    handle: *mut mpv_handle,
+}
 
-    /// Creates a mpv handler
+/// A must-use MpvHandler Builder.
+///
+/// * **Step 1** : call new() to create a Builder.
+/// * **Step 2** : Add options to your player
+/// * **Step 3** : Finish creating your MpvHandler, either with build() or build_with_gl(...)
+///
+impl MpvHandlerBuilder {
+
     ///
-    /// Create a new mpv instance and an associated client API handle to control
-    /// the mpv instance. This instance is in a pre-initialized state,
-    /// and needs to be initialized with init() or init_with_gl()
-    /// to be actually used with most other API functions.
-    ///
-    /// Most API functions will return MPV_ERROR_UNINITIALIZED in the uninitialized
-    /// state. You can call mpv.set_option() to set initial options.
-    /// After this, call mpv.init() or init_with_gl() to start
-    /// the player, and then use e.g. mpv.command() to start playback of a file.
-    ///
-    /// The point of separating handle creation and actual initialization is that
-    /// you can configure things which can't be changed during runtime.
-    ///
-    /// Unlike the command line player, this will have initial settings suitable
-    /// for embedding in applications. The following settings are different:
-    /// - stdin/stdout/stderr and the terminal will never be accessed. This is
-    ///   equivalent to setting the --no-terminal option.
-    ///   (Technically, this also suppresses C signal handling.)
-    /// - No config files will be loaded. This is roughly equivalent to using
-    ///   --no-config. Since libmpv 1.15, you can actually re-enable this option,
-    ///   which will make libmpv load config files during mpv.init(). If you
-    ///   do this, you are strongly encouraged to set the "config-dir" option too.
-    ///   (Otherwise it will load the mpv command line player's config.)
-    /// - Idle mode is enabled, which means the playback core will enter idle mode
-    ///   if there are no more files to play on the internal playlist, instead of
-    ///   exiting. This is equivalent to the --idle option.
-    /// - Disable parts of input handling.
-    /// - Most of the different settings can be viewed with the command line player
-    ///   by running "mpv --show-profile=libmpv".
-    ///
-    /// All this assumes that API users want a mpv instance that is strictly
-    /// isolated from the command line player's configuration, user settings, and
-    /// so on. You can re-enable disabled features by setting the appropriate
-    /// options.
-    ///
-    /// The mpv command line parser is not available through this API, but you can
-    /// set individual options with mpv_set_option(). Files for playback must be
-    /// loaded with mpv_command() or others.
-    ///
-    /// Note that you should avoid doing concurrent accesses on the uninitialized
-    /// client handle. (Whether concurrent access is definitely allowed or not has
-    /// yet to be decided.)
-    ///
-    /// Returns a std::Result that contains an MpvHandler if successful,
+    /// Returns a std::Result that contains an MpvHandlerBuilder if successful,
     /// or an Error is the creation failed. Currently, errors can happen in the following
     /// situations :
     ///         - out of memory
     ///         - LC_NUMERIC is not set to "C" (see general remarks)
-    ///
-    /// You **must** init the handler afterwards using init() or init_with_gl()
-    ///
-    ///
-
-    pub fn create() -> Result<MpvHandler> {
+    #[must_use]
+    pub fn new() -> Result<Self> {
         let handle = unsafe { mpv_create() };
         if handle == ptr::null_mut() {
             return Err(Error::MPV_ERROR_NOMEM);
         }
-        ret_to_result(0,MpvHandler { gl_context: None,
-                                     handle: handle,
-                                     update_available:AtomicBool::new(false)})
+        ret_to_result(0,MpvHandlerBuilder { handle:     handle })
     }
 
     ///
-    /// Inits an uninitialized player.
-    /// Options should be sent to the player **before** initializing it.
+    /// All options for your mpv player should be set on this step
     ///
-    /// See set_option for more details
+    /// # Example
+    /// ```
+    /// let mut mpv_builder = mpv::MpvHandlerBuilder::new().expect("Failed to init MPV builder");
+    /// mpv_builder.set_option("sid","no").expect("Failed to set option 'sid' to 'no'");
+    /// // set other options
+    /// // Build the MpvHandler later
+    /// ```
+    pub fn set_option<T : MpvFormat>(&mut self, property: &str, option: T) -> Result<()> {
+        let mut ret = 0 ;
+        let format = T::get_mpv_format();
+        option.call_as_c_void(|ptr:*mut c_void|{
+            ret = unsafe {
+                mpv_set_option(self.handle,
+                               ffi::CString::new(property).unwrap().as_ptr(),
+                               format,
+                               ptr)
+            }
+        });
+        ret_to_result(ret,())
+    }
+
+
     ///
-    /// If the mpv instance if already running, an error is returned.
-    ///
-    /// If everything goes well, it will return an Ok(()) (i.e. an empty Result)
-    ///
-    pub fn init(&mut self) -> Result<()> {
+    /// Finish creating your player. It will spawn a new window on your window manager.
+    /// Note that it returns a Box of MpvHandler because it needs to be allocated on the heap;
+    /// The Rust MpvHandler gives its own pointer the the C mpv API, and moving the MpvHandler
+    /// within the stack is forbidden in that case.
+    #[must_use]
+    pub fn build(self) -> Result<Box<MpvHandler>> {
         let ret = unsafe { mpv_initialize(self.handle) };
-        ret_to_result(ret, ())
+
+        ret_to_result(ret,Box::new(MpvHandler {
+            handle:             self.handle,
+            gl_context:         None,
+            update_available:   AtomicBool::new(false)
+        }))
     }
 
     ///
-    /// Inits an uninitialized player with a custom opengl instance.
+    /// Finish creating your player, using a custom opengl instance. It will **not** spawn a new,
+    /// window on your window manager, but instead use the given opengl context to draw the video.
     ///
     /// An option of an 'extern "C"' function must be passed as a parameter,
-    /// which fullfills the role of get_prox_address.
+    /// which fullfills the role of get_proc_address.
     /// An arbitrary opaque user context which will be passed to the
     /// get_proc_address callback must also be sent.
     ///
@@ -123,35 +110,60 @@ impl MpvHandler {
     ///                          (or required extensions are missing)
     /// * MPV_ERROR_INVALID_PARAMETER: the OpenGL state was already initialized
     ///
-    /// For additional information, see examples/sdl2.rs for a basic implementation
-    pub fn init_with_gl(&mut self,
-                        get_proc_address: mpv_opengl_cb_get_proc_address_fn,
-                        get_proc_address_ctx: *mut ::std::os::raw::c_void)
-                        -> Result<()> {
+    /// For additional information, see examples/sdl2.rs for a basic implementation with a sdl2 opengl context
+    #[must_use]
+    pub fn build_with_gl(mut self,
+                         get_proc_address: mpv_opengl_cb_get_proc_address_fn,
+                         get_proc_address_ctx: *mut ::std::os::raw::c_void) -> Result<Box<MpvHandler>> {
         self.set_option("vo", "opengl-cb").expect("Error setting vo option to opengl-cb");
-        let result = self.init();
-        if result.is_ok(){
-            let opengl_ctx = unsafe {
-                mpv_get_sub_api(self.handle,
-                                SubApi::MPV_SUB_API_OPENGL_CB)
-            } as *mut mpv_opengl_cb_context ;
-            let ret = unsafe {
-                mpv_opengl_cb_init_gl(opengl_ctx, ptr::null(), get_proc_address, get_proc_address_ctx)
+        let mpv_handler_result = self.build();
+        if mpv_handler_result.is_ok(){
+            let mut mpv_handler_box = mpv_handler_result.unwrap();
+            let ret = {
+                let mpv_handler = mpv_handler_box.as_mut();
+                let opengl_ctx = unsafe {
+                    mpv_get_sub_api(mpv_handler.handle,
+                                    SubApi::MPV_SUB_API_OPENGL_CB)
+                } as *mut mpv_opengl_cb_context ;
+                let ret = unsafe {
+                    mpv_opengl_cb_init_gl(opengl_ctx, ptr::null(), get_proc_address, get_proc_address_ctx)
+                };
+                // Actually using the opengl_cb state has to be explicitly requested.
+                // Otherwise, mpv will create a separate platform window.
+
+                // Additional callback
+                unsafe {mpv_opengl_cb_set_update_callback(opengl_ctx,
+                                                          Some(MpvHandler::update_draw),
+                                                          mpv_handler as *mut _ as *mut c_void)};
+                mpv_handler.gl_context = Some(opengl_ctx) ;
+                ret
             };
-            // Actually using the opengl_cb state has to be explicitly requested.
-            // Otherwise, mpv will create a separate platform window.
-
-            // Additional callback
-            unsafe {mpv_opengl_cb_set_update_callback(opengl_ctx,
-                                                      Some(Self::update_draw),
-                                                      self as *mut _ as *mut c_void)};
-
-            self.gl_context = Some(opengl_ctx) ;
-            ret_to_result(ret,())
+            ret_to_result(ret,mpv_handler_box)
         } else {
-            result
+            mpv_handler_result
         }
     }
+}
+
+/// Unlike the command line player, this will have initial settings suitable
+/// for embedding in applications. The following settings are different:
+/// - stdin/stdout/stderr and the terminal will never be accessed. This is
+///   equivalent to setting the --no-terminal option.
+///   (Technically, this also suppresses C signal handling.)
+/// - No config files will be loaded. This is roughly equivalent to using
+///   --no-config. Since libmpv 1.15, you can actually re-enable this option,
+///   which will make libmpv load config files during mpv.init(). If you
+///   do this, you are strongly encouraged to set the "config-dir" option too.
+///   (Otherwise it will load the mpv command line player's config.)
+/// - Idle mode is enabled, which means the playback core will enter idle mode
+///   if there are no more files to play on the internal playlist, instead of
+///   exiting. This is equivalent to the --idle option.
+/// - Disable parts of input handling.
+/// - Most of the different settings can be viewed with the command line player
+///   by running "mpv --show-profile=libmpv".
+///
+
+impl MpvHandler {
 
     /// Render video
     ///
@@ -249,13 +261,14 @@ impl MpvHandler {
     }
 
     ///
-    /// Set an option. Note that you can't normally set options during runtime.
-    ///
-    /// Changing options at runtime does not always work. For some options, attempts
+    /// Set an option. Note that you can't normally set options during runtime :
+    /// changing options at runtime does not always work. For some options, attempts
     /// to change them simply fails. Many other options may require reloading the
     /// file for changes to take effect. In general, you should prefer calling
     /// mpv.set_property() to change settings during playback, because the property
     /// mechanism guarantees that changes take effect immediately.
+    ///
+    /// It is preferred that you initialize your options with the Builder instead
     ///
     pub fn set_option<T : MpvFormat>(&mut self, property: &str, option: T) -> Result<()> {
         let mut ret = 0 ;
