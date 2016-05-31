@@ -54,8 +54,7 @@ fn sdl_example(video_path: &Path) {
                 .unwrap();
         let ptr = &mut video_subsystem as *mut _ as *mut c_void;
         let mpv_builder = mpv::MpvHandlerBuilder::new().expect("Error while creating MPV builder");
-        let mut mpv_box : Box<mpv::MpvHandler> = mpv_builder.build_with_gl(Some(get_proc_address), ptr).expect("Error while initializing MPV with opengl");
-        let mut mpv = mpv_box.as_mut();
+        let mut mpv : Box<mpv::MpvHandler> = mpv_builder.build_with_gl(Some(get_proc_address), ptr).expect("Error while initializing MPV with opengl");
         mpv.observe_property::<bool>("pause",5).unwrap();
         let video_path = video_path.to_str().expect("Expected a string for Path, got None");
         mpv.command(&["loadfile", video_path as &str])
