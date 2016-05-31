@@ -11,7 +11,7 @@ use mpv_error::*;
 use std::os::raw::c_void;
 use std::{ffi, ptr};
 use std::sync::atomic::{AtomicBool, Ordering};
-
+use std::boxed::Box;
 /// The main struct of the mpv-rs crate
 ///
 /// Almost every function from the libmpv API needs a context, and sometimes an opengl context,
@@ -21,6 +21,76 @@ pub struct MpvHandler {
     handle: *mut mpv_handle,
     gl_context: Option<*mut mpv_opengl_cb_context>,
     update_available:AtomicBool
+}
+
+pub struct MpvHandlerBuilder {
+    handle: *mut mpv_handle,
+}
+
+impl MpvHandlerBuilder {
+    pub fn new() -> Result<Self> {
+        let handle = unsafe { mpv_create() };
+        if handle == ptr::null_mut() {
+            return Err(Error::MPV_ERROR_NOMEM);
+        }
+        ret_to_result(0,MpvHandlerBuilder { handle:     handle })
+    }
+
+    pub fn set_option<T : MpvFormat>(&mut self, property: &str, option: T) -> Result<()> {
+        let mut ret = 0 ;
+        let format = T::get_mpv_format();
+        option.call_as_c_void(|ptr:*mut c_void|{
+            ret = unsafe {
+                mpv_set_option(self.handle,
+                               ffi::CString::new(property).unwrap().as_ptr(),
+                               format,
+                               ptr)
+            }
+        });
+        ret_to_result(ret,())
+    }
+
+    pub fn build(mut self) -> Result<Box<MpvHandler>> {
+        let ret = unsafe { mpv_initialize(self.handle) };
+
+        ret_to_result(ret,Box::new(MpvHandler {
+            handle:             self.handle,
+            gl_context:         None,
+            update_available:   AtomicBool::new(false)
+        }))
+    }
+
+    pub fn build_with_gl(mut self,
+                         get_proc_address: mpv_opengl_cb_get_proc_address_fn,
+                         get_proc_address_ctx: *mut ::std::os::raw::c_void) -> Result<Box<MpvHandler>> {
+        self.set_option("vo", "opengl-cb").expect("Error setting vo option to opengl-cb");
+        let mpv_handler_result = self.build();
+        if mpv_handler_result.is_ok(){
+            let mut mpv_handler_box = mpv_handler_result.unwrap();
+            let ret = {
+                let mpv_handler = mpv_handler_box.as_mut();
+                let opengl_ctx = unsafe {
+                    mpv_get_sub_api(mpv_handler.handle,
+                                    SubApi::MPV_SUB_API_OPENGL_CB)
+                } as *mut mpv_opengl_cb_context ;
+                let ret = unsafe {
+                    mpv_opengl_cb_init_gl(opengl_ctx, ptr::null(), get_proc_address, get_proc_address_ctx)
+                };
+                // Actually using the opengl_cb state has to be explicitly requested.
+                // Otherwise, mpv will create a separate platform window.
+
+                // Additional callback
+                unsafe {mpv_opengl_cb_set_update_callback(opengl_ctx,
+                                                          Some(MpvHandler::update_draw),
+                                                          mpv_handler as *mut _ as *mut c_void)};
+                mpv_handler.gl_context = Some(opengl_ctx) ;
+                ret
+            };
+            ret_to_result(ret,mpv_handler_box)
+        } else {
+            mpv_handler_result
+        }
+    }
 }
 
 impl MpvHandler {
