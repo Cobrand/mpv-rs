@@ -16,7 +16,7 @@ fn simple_example(video_path: &Path) {
         // enable On Screen Controller (disabled with libmpv by default)
         mpv_builder.set_option("osc",true).unwrap();
 
-        let mut mpv : Box<mpv::MpvHandler> = mpv_builder.build().expect("Failed to build MPV handler");
+        let mut mpv = mpv_builder.build().expect("Failed to build MPV handler");
 
         mpv.command(&["loadfile", video_path as &str])
            .expect("Error loading file");

@@ -19,7 +19,11 @@ use std::boxed::Box;
 ///
 pub struct MpvHandler {
     handle: *mut mpv_handle,
-    gl_context: Option<*mut mpv_opengl_cb_context>,
+}
+
+pub struct MpvHandlerWithGl {
+    mpv_handler:     MpvHandler,
+    gl_context:      *mut mpv_opengl_cb_context,
     update_available:AtomicBool
 }
 
@@ -81,14 +85,12 @@ impl MpvHandlerBuilder {
     /// The Rust MpvHandler gives its own pointer the the C mpv API, and moving the MpvHandler
     /// within the stack is forbidden in that case.
     #[must_use]
-    pub fn build(self) -> Result<Box<MpvHandler>> {
+    pub fn build(self) -> Result<MpvHandler> {
         let ret = unsafe { mpv_initialize(self.handle) };
 
-        ret_to_result(ret,Box::new(MpvHandler {
+        ret_to_result(ret,MpvHandler {
             handle:             self.handle,
-            gl_context:         None,
-            update_available:   AtomicBool::new(false)
-        }))
+        })
     }
 
     ///
@@ -114,13 +116,11 @@ impl MpvHandlerBuilder {
     #[must_use]
     pub fn build_with_gl(mut self,
                          get_proc_address: mpv_opengl_cb_get_proc_address_fn,
-                         get_proc_address_ctx: *mut ::std::os::raw::c_void) -> Result<Box<MpvHandler>> {
+                         get_proc_address_ctx: *mut ::std::os::raw::c_void) -> Result<Box<MpvHandlerWithGl>> {
         self.set_option("vo", "opengl-cb").expect("Error setting vo option to opengl-cb");
         let mpv_handler_result = self.build();
-        if mpv_handler_result.is_ok(){
-            let mut mpv_handler_box = mpv_handler_result.unwrap();
-            let ret = {
-                let mpv_handler = mpv_handler_box.as_mut();
+        match mpv_handler_result {
+            Ok(mpv_handler) => {
                 let opengl_ctx = unsafe {
                     mpv_get_sub_api(mpv_handler.handle,
                                     SubApi::MPV_SUB_API_OPENGL_CB)
@@ -131,16 +131,21 @@ impl MpvHandlerBuilder {
                 // Actually using the opengl_cb state has to be explicitly requested.
                 // Otherwise, mpv will create a separate platform window.
 
+                let mut mpv_handler_with_gl = Box::new(MpvHandlerWithGl {
+                    mpv_handler:      mpv_handler,
+                    gl_context:       opengl_ctx,
+                    update_available: AtomicBool::new(false)
+                });
+
                 // Additional callback
                 unsafe {mpv_opengl_cb_set_update_callback(opengl_ctx,
-                                                          Some(MpvHandler::update_draw),
-                                                          mpv_handler as *mut _ as *mut c_void)};
-                mpv_handler.gl_context = Some(opengl_ctx) ;
-                ret
-            };
-            ret_to_result(ret,mpv_handler_box)
-        } else {
-            mpv_handler_result
+                                                          Some(MpvHandlerWithGl::update_draw),
+                                                          mpv_handler_with_gl.as_mut() as *mut _ as *mut c_void)};
+                ret_to_result(ret,mpv_handler_with_gl)
+            },
+            Err(e) => {
+                Err(e)
+            }
         }
     }
 }
@@ -163,8 +168,19 @@ impl MpvHandlerBuilder {
 ///   by running "mpv --show-profile=libmpv".
 ///
 
-impl MpvHandler {
+impl AsRef<MpvHandler> for MpvHandlerWithGl {
+    fn as_ref(&self) ->  &MpvHandler {
+        &self.mpv_handler
+    }
+}
 
+impl AsMut<MpvHandler> for MpvHandlerWithGl {
+    fn as_mut(&mut self) ->  &mut MpvHandler {
+        &mut self.mpv_handler
+    }
+}
+
+impl MpvHandlerWithGl {
     /// Render video
     ///
     /// The video will use the full provided framebuffer. Options like "panscan" are
@@ -196,10 +212,23 @@ impl MpvHandler {
     ///
     pub fn draw(&mut self, fbo: i32, width: i32, heigth: i32) -> Result<()> {
         self.update_available.store(false,Ordering::Relaxed) ;
-        let opengl_ctx = self.gl_context.expect("Opengl context is required to draw");
-        let ret = unsafe { mpv_opengl_cb_draw(opengl_ctx, fbo, width, heigth) };
+        let ret = unsafe { mpv_opengl_cb_draw(self.gl_context, fbo, width, heigth) };
         ret_to_result(ret, ())
     }
+
+    unsafe extern "C" fn update_draw(cb_ctx: *mut ::std::os::raw::c_void) {
+        let ptr = cb_ctx as *mut MpvHandlerWithGl ;
+        assert!(!ptr.is_null());
+        let mpv = &mut (*ptr) ;
+        mpv.update_available.store(true, Ordering::Relaxed);
+    }
+
+    pub fn is_update_available(&self) -> bool {
+        self.update_available.load(Ordering::Relaxed)
+    }
+}
+
+impl MpvHandler {
 
     /// Set a property synchronously
     pub fn set_property<T : MpvFormat>(&mut self, property: &str, value : T) -> Result<()>{
@@ -364,26 +393,22 @@ impl MpvHandler {
         ret_to_result(ret,())
     }
 
-    unsafe extern "C" fn update_draw(cb_ctx: *mut ::std::os::raw::c_void) {
-        let ptr = cb_ctx as *mut MpvHandler ;
-        assert!(!ptr.is_null());
-        let mpv = &mut (*ptr) ;
-        mpv.update_available.store(true, Ordering::Relaxed);
+    pub fn raw(&self) -> *mut mpv_handle {
+        self.handle
     }
+}
 
-    pub fn is_update_available(&self) -> bool {
-        self.update_available.load(Ordering::Relaxed)
+impl Drop for MpvHandlerWithGl {
+    fn drop(&mut self) {
+        unsafe {
+            // careful : always uninit gl before terminate_destroy mpv
+            mpv_opengl_cb_uninit_gl(self.gl_context);
+        }
     }
 }
 
 impl Drop for MpvHandler {
     fn drop(&mut self) {
-        if let Some(gl_ctx) = self.gl_context {
-            unsafe {
-                // careful : always uninit gl before terminate_destroy mpv
-                mpv_opengl_cb_uninit_gl(gl_ctx);
-            }
-        }
         unsafe {
             mpv_terminate_destroy(self.handle);
         }
