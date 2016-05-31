@@ -13,6 +13,8 @@ fn simple_example(video_path: &Path) {
         // mpv options should be set before initializing
         mpv.set_option("sid","no").unwrap();
 
+        mpv.set_option("osc",true).unwrap();
+
         mpv.init().expect("Failed to init MPV");
 
         mpv.command(&["loadfile", video_path as &str])
