@@ -11,9 +11,13 @@ the mpv package is needed for this to run.
 
 On linux, you can ask your package manager to install it for you.
 
-Example on Arch :
+### Arch
 
     $ sudo pacman -S mpv
+
+### Debian-based systems
+
+    $ sudo apt-get install libmpv1
 
 ## Windows
 
