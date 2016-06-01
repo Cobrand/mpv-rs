@@ -1,7 +1,13 @@
 
 # mpv-rs
 
-safe mpv bindings for Rust v0.2.0
+safe libmpv bindings for Rust.
+
+> mpv is a media player based on MPlayer and mplayer2.
+> It supports a wide variety of video file formats, audio and video codecs, and subtitle types.
+
+The crate is a safe libmpv API binding in Rust. For more info about mpv,
+see [here](https://github.com/mpv-player/mpv).
 
 # Installing
 
