@@ -33,21 +33,27 @@ fn sdl_example(video_path: &Path) {
             opengl_driver = Some(driver_index);
         }
     }
-    if opengl_driver.is_some(){
-        let opengl_driver = opengl_driver.unwrap() as u32;
+    if let Some(opengl_driver) = opengl_driver {
+        let opengl_driver = opengl_driver as u32;
+        // initialize SDL
         let sdl_context = sdl2::init().unwrap();
+        // initialize the video subsystem for SDL
         let mut video_subsystem = sdl_context.video().unwrap();
-        let window = video_subsystem.window("Toyunda Player", 960, 540)
+        // Create a new window
+        let window = video_subsystem.window("MPV-RS SDL2 EXAMPLE", 960, 540)
             .resizable()
             .position_centered()
             .opengl()
             .build()
             .unwrap();
+        // Create an SDL renderer with vsync enabled, using the given opengl driver
         let renderer = window.renderer()
             .present_vsync()
             .index(opengl_driver)
             .build()
             .expect("Failed to create renderer with given parameters");
+
+        // this step is necessary
         renderer.window()
                 .expect("Failed to extract window from displayer")
                 .gl_set_context_to_current()
@@ -55,8 +61,13 @@ fn sdl_example(video_path: &Path) {
         let ptr = &mut video_subsystem as *mut _ as *mut c_void;
         let mpv_builder = mpv::MpvHandlerBuilder::new().expect("Error while creating MPV builder");
         let mut mpv : Box<mpv::MpvHandlerWithGl> = mpv_builder.build_with_gl(Some(get_proc_address), ptr).expect("Error while initializing MPV with opengl");
+        // observe the property "pause" with userdata 5.
+        // When we will pause later, an event PropertyChange will be sent with userdata 5
         mpv.observe_property::<bool>("pause",5).unwrap();
+
         let video_path = video_path.to_str().expect("Expected a string for Path, got None");
+
+        // Send a command synchronously, telling the libmpv core to load a file
         mpv.command(&["loadfile", video_path as &str])
            .expect("Error loading file");
 
@@ -73,12 +84,14 @@ fn sdl_example(video_path: &Path) {
                             false => {mpv.set_property_async("pause",true,1).expect("Failed to unpause player");}
                         }
                     },
+                    // this is useless and only here to show the possibilities of the mpv-rs API
                     SdlEvent::KeyDown { keycode: Some(Keycode::O),repeat: false, .. } => {
                         mpv.get_property_async::<&str>("speed",5).unwrap();
                     },
                     _ => {}
                 }
             }
+            // wait up to 0.0 seconds for an event.
             while let Some(event) = mpv.wait_event(0.0) {
                 // even if you don't do anything with the events, it is still necessary to empty
                 // the event loop
@@ -92,7 +105,7 @@ fn sdl_example(video_path: &Path) {
             }
             let (width, height) = renderer.window().unwrap().size();
             if mpv.is_update_available(){
-                mpv.draw(0, width as i32, -(height as i32)).expect("Failed to draw ");
+                mpv.draw(0, width as i32, -(height as i32)).expect("Failed to draw on SDL2 window");
             }
             renderer.window().unwrap().gl_swap_window();
         }
