@@ -1,6 +1,6 @@
 [package]
 name = "mpv"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Cobrand <cobrandw@gmail.com>","yamakaky"]
 description = "safe mpv bindings for Rust"
 homepage = "https://github.com/Cobrand/mpv-rs"

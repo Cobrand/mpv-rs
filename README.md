@@ -1,7 +1,7 @@
 
 # mpv-rs
 
-safe mpv bindings for Rust
+safe mpv bindings for Rust v0.2.0
 
 # Installing
 
