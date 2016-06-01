@@ -55,9 +55,9 @@ fn sdl_example(video_path: &Path) {
         let ptr = &mut video_subsystem as *mut _ as *mut c_void;
         let mpv_builder = mpv::MpvHandlerBuilder::new().expect("Error while creating MPV builder");
         let mut mpv : Box<mpv::MpvHandlerWithGl> = mpv_builder.build_with_gl(Some(get_proc_address), ptr).expect("Error while initializing MPV with opengl");
-        mpv.as_mut().as_mut().observe_property::<bool>("pause",5).unwrap();
+        mpv.observe_property::<bool>("pause",5).unwrap();
         let video_path = video_path.to_str().expect("Expected a string for Path, got None");
-        mpv.as_mut().as_mut().command(&["loadfile", video_path as &str])
+        mpv.command(&["loadfile", video_path as &str])
            .expect("Error loading file");
 
         let mut event_pump = sdl_context.event_pump().expect("Failed to create event_pump");
@@ -68,18 +68,18 @@ fn sdl_example(video_path: &Path) {
                         break 'main
                     },
                     SdlEvent::KeyDown { keycode: Some(Keycode::Space),repeat: false, .. } => {
-                        match mpv.as_mut().as_mut().get_property("pause").unwrap() {
-                            true => {mpv.as_mut().as_mut().set_property_async("pause",false,1).expect("Failed to pause player");},
-                            false => {mpv.as_mut().as_mut().set_property_async("pause",true,1).expect("Failed to unpause player");}
+                        match mpv.get_property("pause").unwrap() {
+                            true => {mpv.set_property_async("pause",false,1).expect("Failed to pause player");},
+                            false => {mpv.set_property_async("pause",true,1).expect("Failed to unpause player");}
                         }
                     },
                     SdlEvent::KeyDown { keycode: Some(Keycode::O),repeat: false, .. } => {
-                        mpv.as_mut().as_mut().get_property_async::<&str>("speed",5).unwrap();
+                        mpv.get_property_async::<&str>("speed",5).unwrap();
                     },
                     _ => {}
                 }
             }
-            while let Some(event) = mpv.as_mut().as_mut().wait_event(0.0) {
+            while let Some(event) = mpv.wait_event(0.0) {
                 // even if you don't do anything with the events, it is still necessary to empty
                 // the event loop
                 println!("RECEIVED EVENT : {:?}", event);

@@ -12,6 +12,7 @@ use std::os::raw::c_void;
 use std::{ffi, ptr};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::boxed::Box;
+use std::ops::{Deref,DerefMut};
 /// The main struct of the mpv-rs crate
 ///
 /// Almost every function from the libmpv API needs a context, and sometimes an opengl context,
@@ -140,7 +141,7 @@ impl MpvHandlerBuilder {
                 // Additional callback
                 unsafe {mpv_opengl_cb_set_update_callback(opengl_ctx,
                                                           Some(MpvHandlerWithGl::update_draw),
-                                                          mpv_handler_with_gl.as_mut() as *mut _ as *mut c_void)};
+                                                          mpv_handler_with_gl.as_mut() as *mut MpvHandlerWithGl as *mut c_void)};
                 ret_to_result(ret,mpv_handler_with_gl)
             },
             Err(e) => {
@@ -168,14 +169,15 @@ impl MpvHandlerBuilder {
 ///   by running "mpv --show-profile=libmpv".
 ///
 
-impl AsRef<MpvHandler> for MpvHandlerWithGl {
-    fn as_ref(&self) ->  &MpvHandler {
+impl Deref for MpvHandlerWithGl {
+    type Target = MpvHandler;
+    fn deref(&self) -> &MpvHandler {
         &self.mpv_handler
     }
 }
 
-impl AsMut<MpvHandler> for MpvHandlerWithGl {
-    fn as_mut(&mut self) ->  &mut MpvHandler {
+impl DerefMut for MpvHandlerWithGl {
+    fn deref_mut(&mut self) -> &mut MpvHandler {
         &mut self.mpv_handler
     }
 }
