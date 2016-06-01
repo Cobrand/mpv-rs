@@ -25,28 +25,44 @@ impl fmt::Display for MpvEventId {
 
 #[derive(Debug)]
 pub enum Event<'a> {
+    /// Received when the player is shutting down
     Shutdown,
+    /// *Has not been tested*, received when explicitly asked to MPV
     LogMessage{prefix:&'static str,level:&'static str,text:&'static str,log_level:LogLevel},
+    /// Received when using get_property_async
     GetPropertyReply{name:&'static str,result:Result<Format<'a>>,reply_userdata:u32},
+    /// Received when using set_property_async
     SetPropertyReply(Result<()>,u32),
+    /// Received when using command_async
     CommandReply(Result<()>,u32),
+    /// Event received when a new file is playing
     StartFile,
+    /// Event received when the file being played currently has stopped, for an error or not
     EndFile(Result<EndFileReason>),
+    /// Event received when a file has been *loaded*, but has not been started
     FileLoaded,
     TracksChanged,
+    /// Deprecated
     TrackSwitched,
+    /// Received when the player has no more files to play and is in an idle state
     Idle,
+    /// The player paused playback
     Pause,
+    /// The player started playback again
     Unpause,
     Tick,
+    /// **Unimplemented**
     ClientMessage,
     VideoReconfig,
     AudioReconfig,
     MetadataUpdate,
+    /// The player changed current position
     Seek,
     PlaybackRestart,
+    /// Received when used with observe_property
     PropertyChange{name:&'static str,change:Format<'a>,reply_userdata:u32},
     ChapterChange,
+    /// Received when the Event Queue is full
     QueueOverflow,
     /// Unused event
     Unused
@@ -119,6 +135,16 @@ pub fn to_event<'a>(event_id:MpvEventId,
     }
 }
 
+///
+/// Event replies GetPropertyReply and PropertyChange will answer this object.
+///
+/// This list is incomplete, the current formats are missing :
+///
+/// * Node
+/// * NodeArray
+/// * NodeMap
+/// * ByteArray
+
 #[derive(Debug)]
 pub enum Format<'a>{
     Flag(bool),
@@ -138,6 +164,9 @@ impl<'a> Format<'a> {
             Format::OsdStr(_) => MpvInternalFormat::MPV_FORMAT_OSD_STRING,
         }
     }
+    ///
+    /// This is used internally by the mpv-rs crate, you probably should not be using this.
+    ///
     pub fn get_from_c_void(format:MpvInternalFormat,pointer:*mut c_void) -> Self {
         match format {
             MpvInternalFormat::MPV_FORMAT_FLAG => {

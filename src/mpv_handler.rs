@@ -15,13 +15,17 @@ use std::boxed::Box;
 use std::ops::{Deref,DerefMut};
 /// The main struct of the mpv-rs crate
 ///
-/// Almost every function from the libmpv API needs a context, and sometimes an opengl context,
-/// and both are stored here.
+/// Almost every function from the libmpv API needs a context, which is stored in this struct.
 ///
 pub struct MpvHandler {
     handle: *mut mpv_handle,
 }
 
+
+///
+/// This struct is a decorator of MpvHandler, and can use all the functions from MpvHandler.
+/// It is only used when you must embed mpv somewhere else using openGL.
+///
 pub struct MpvHandlerWithGl {
     mpv_handler:     MpvHandler,
     gl_context:      *mut mpv_opengl_cb_context,
@@ -103,15 +107,10 @@ impl MpvHandlerBuilder {
     /// An arbitrary opaque user context which will be passed to the
     /// get_proc_address callback must also be sent.
     ///
-    /// # Panics
-    ///
-    /// It will panic if the custom get_proc_address_ctx is NULL
-    ///
     /// # Errors
     ///
     /// * MPV_ERROR_UNSUPPORTED: the OpenGL version is not supported
     ///                          (or required extensions are missing)
-    /// * MPV_ERROR_INVALID_PARAMETER: the OpenGL state was already initialized
     ///
     /// For additional information, see examples/sdl2.rs for a basic implementation with a sdl2 opengl context
     #[must_use]
@@ -150,24 +149,6 @@ impl MpvHandlerBuilder {
         }
     }
 }
-
-/// Unlike the command line player, this will have initial settings suitable
-/// for embedding in applications. The following settings are different:
-/// - stdin/stdout/stderr and the terminal will never be accessed. This is
-///   equivalent to setting the --no-terminal option.
-///   (Technically, this also suppresses C signal handling.)
-/// - No config files will be loaded. This is roughly equivalent to using
-///   --no-config. Since libmpv 1.15, you can actually re-enable this option,
-///   which will make libmpv load config files during mpv.init(). If you
-///   do this, you are strongly encouraged to set the "config-dir" option too.
-///   (Otherwise it will load the mpv command line player's config.)
-/// - Idle mode is enabled, which means the playback core will enter idle mode
-///   if there are no more files to play on the internal playlist, instead of
-///   exiting. This is equivalent to the --idle option.
-/// - Disable parts of input handling.
-/// - Most of the different settings can be viewed with the command line player
-///   by running "mpv --show-profile=libmpv".
-///
 
 impl Deref for MpvHandlerWithGl {
     type Target = MpvHandler;
@@ -208,10 +189,6 @@ impl MpvHandlerWithGl {
     /// If the external video module has not been configured correctly, libmpv can send various
     /// errors such as MPV_ERROR_UNSUPPORTED
     ///
-    /// # Panics
-    ///
-    /// This function will panic if you did not initialize the object with init_with_gl(...)
-    ///
     pub fn draw(&mut self, fbo: i32, width: i32, heigth: i32) -> Result<()> {
         self.update_available.store(false,Ordering::Relaxed) ;
         let ret = unsafe { mpv_opengl_cb_draw(self.gl_context, fbo, width, heigth) };
@@ -225,6 +202,7 @@ impl MpvHandlerWithGl {
         mpv.update_available.store(true, Ordering::Relaxed);
     }
 
+    /// returns true if another frame is available
     pub fn is_update_available(&self) -> bool {
         self.update_available.load(Ordering::Relaxed)
     }
@@ -347,19 +325,12 @@ impl MpvHandler {
 
     /// Returns an Event if there is an Event available. Returns None if the event pool is empty.
     ///
-    /// It is still necessary to empty the event pool even if you don't use the events
-    /// Unexpected behaviour can happen
+    /// It is still necessary to empty the event pool even if you don't use the events, since
+    /// the event pool is not limited and will be full if you don't empty it.
     ///
-    /// # Example
-    /// ```
-    /// let mpv = mpv::MpvHandler::init().expect("Error while initializing MPV");
-    /// while let Some(event) = mpv.wait_event(0.0) {
-    ///     println!("RECEIVED EVENT : {:?}", event.event_id.to_str());
-    ///     // do something else with event
-    /// }
-    /// ```
+    /// # Panics
     ///
-    ///
+    /// Will panic if a null pointer is received from the libmpv API (should never happen)
 
     pub fn wait_event<'a>(&mut self,timeout:f64) -> Option<Event<'a>> {
         let event = unsafe {
@@ -375,6 +346,7 @@ impl MpvHandler {
                  event.data)
     }
 
+    /// Observe a property change. The property change will be returned via an Event PropertyChange
     pub fn observe_property<T:MpvFormat>(&mut self,name:&str,userdata:u32) -> Result<()>{
         let userdata = userdata as ::std::os::raw::c_ulong;
         let ret = unsafe {
@@ -386,6 +358,7 @@ impl MpvHandler {
         ret_to_result(ret,())
     }
 
+    /// Unobserve a previously observed property change
     pub fn unobserve_property(&mut self,userdata:u32) -> Result<()> {
         let userdata = userdata as ::std::os::raw::c_ulong;
         let ret = unsafe {
@@ -395,6 +368,7 @@ impl MpvHandler {
         ret_to_result(ret,())
     }
 
+    /// Get the raw pointer for the mpv_handle. Use with care.
     pub fn raw(&self) -> *mut mpv_handle {
         self.handle
     }

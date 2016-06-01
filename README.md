@@ -29,6 +29,37 @@ linked properly.
 
 Any contribution is welcome, as well as any code review !
 
+## What is left to implement
+
+### Events :
+
+* ClientMessage
+
+### Formats :
+
+* Node
+* NodeList
+* NodeMap
+* ByteArray
+
+### MpvHandler impls :
+
+* [get_time_us](https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L537)
+* resume / suspend core (**not** pause/unpause !)
+* load_config_file
+* detach_destroy (if only I knew what this was for ?)
+* [client_name](https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L361)
+* set_wakeup_callback
+* get_wakeup_pipe
+* request_log_messages
+* request_event
+
+### MpvHandlerWithGl impls :
+
+* raw_opengl_ctx() : return the raw opengl context
+* report_flip
+* set_update_callback (partly implemented via update_available)
+
 # Submitting an issue
 
 An question concerning the mpv-rs API is welcome in the issues.

@@ -21,6 +21,8 @@ impl fmt::Display for Error {
     }
 }
 
+/// utility function to transform an int (sent by libmpv) into a Result,
+/// depending if the received int is 0 or something else
 pub fn ret_to_result<T>(ret: i32, default: T) -> Result<T> {
     if ret < 0 {
         Err(Error::from_i32(ret).unwrap())

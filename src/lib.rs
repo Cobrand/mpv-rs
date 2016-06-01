@@ -12,10 +12,10 @@
 //! whether applications using this API are affected by the GPL.
 //!
 //! One argument against this is that proprietary applications
-//! using mplayer in slave mode is apparently tolerated, and this
-//! API is basically equivalent to slave mode.
+//! using mplayer in slave mode is apparently tolerated, and the libmpv
+//! API used by this crate is basically equivalent to slave mode.
 //!
-//! As for this crate itself, it is licensed under the zlib license
+//! As for this crate itself, it is licensed under the zlib license.
 //!
 //! # Additional Documentation
 //!
@@ -32,6 +32,29 @@
 //! * http://mpv.io/manual/master/#list-of-input-commands
 //! * http://mpv.io/manual/master/#properties
 //!
+//! # Differences with mpv
+//!
+//! This crate uses the libmpv API, which is different from the command line player mpv.
+//! Event though both share the same core, some differences must be noted. Taken directly
+//! from the libmpv docs :
+//!
+//! > Unlike the command line player, this will have initial settings suitable
+//! > for embedding in applications. The following settings are different:
+//! >
+//! > * stdin/stdout/stderr and the terminal will never be accessed. This is
+//! >   equivalent to setting the --no-terminal option.
+//! >   (Technically, this also suppresses C signal handling.)
+//! > * No config files will be loaded. This is roughly equivalent to using
+//! >   --no-config. Since libmpv 1.15, you can actually re-enable this option,
+//! >   which will make libmpv load config files during mpv.init(). If you
+//! >   do this, you are strongly encouraged to set the "config-dir" option too.
+//! >   (Otherwise it will load the mpv command line player's config.)
+//! > * Idle mode is enabled, which means the playback core will enter idle mode
+//! >   if there are no more files to play on the internal playlist, instead of
+//! >   exiting. This is equivalent to the --idle option.
+//! > * Disable parts of input handling.
+//! > * Most of the different settings can be viewed with the command line player
+//! >   by running "mpv --show-profile=libmpv".
 //!
 //! # Event loop
 //!
@@ -44,7 +67,8 @@
 //!
 //! Note that the event loop is detached from the actual player. Not calling
 //! mpv.wait_event() will not stop playback. It will eventually congest the
-//! event queue of your API handle, though.
+//! event queue of your API handle, though, that is why should still empty
+//! the event loop, even though you do not use the events.
 //!
 //! # Synchronous vs. asynchronous calls
 //!
@@ -54,14 +78,12 @@
 //! calls just queue operations as requests, and return the result of the
 //! operation as events.
 //!
-//! As for right now, asynchronous calls are not implemented in mpv-rs
-//!
 //! # Asynchronous calls
 //!
 //! The client API includes asynchronous functions. These allow you to send
 //! requests instantly, and get replies as events at a later point. The
 //! requests are made with functions carrying the _async suffix, and replies
-//! are returned by mpv_wait_event() (interleaved with the normal event stream).
+//! are returned by mpv.wait_event(...) (interleaved with the normal event stream).
 //!
 //! A unsigned userdata value is used to allow the user to associate requests
 //! with replies. The value is passed as reply_userdata parameter to the request
@@ -69,10 +91,14 @@
 //! MpvEvent.reply_userdata field set to the same value as the
 //! userdata parameter of the corresponding request.
 //!
-//! This userdata value is arbitrary and is never interpreted by the API. Note
-//! that the userdata value 0 is also allowed, but then the client must be
-//! careful not accidentally interpret the mpv_event->reply_userdata if an
-//! event is not a reply. (For non-replies, this field is set to 0.)
+//! This userdata value is arbitrary and is never interpreted by the libmpv API nor this crate.
+//!
+//! > *Note that the userdata value 0 is also allowed, but then the client must be
+//! > careful not accidentally interpret the mpv_event->reply_userdata if an
+//! > event is not a reply. (For non-replies, this field is set to 0.)*
+//!
+//! This comment is from the libmpv API and is not valid in this crate since the reply_userdata
+//! field is suppressed for non-reply events
 //!
 //! Currently, asynchronous calls are always strictly ordered (even with
 //! synchronous calls) for each client, although that may change in the future.
@@ -109,13 +135,9 @@
 //!
 //! Like Rust, libmpv uses UTF-8 everywhere.
 //!
-//!
 //! On OS X, filenames and other strings taken/returned by libmpv can have
 //! inconsistent unicode normalization. This can sometimes lead to problems.
 //! You have to hope for the best.
-//!
-//! Also see the remarks for MPV_FORMAT_STRING.
-//!
 //!
 
 
