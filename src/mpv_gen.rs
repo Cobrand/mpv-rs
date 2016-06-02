@@ -74,25 +74,13 @@ enum_from_primitive! {
 /// Generic catch-all error if a parameter is set to an invalid or
 /// unsupported value. This is used if there is no better error code.
 ///
-/// ## Example
-///
 /// Typically this is sent when you are trying to set properties or options
 /// where the value is not supported, but the format itself is
-///
-/// ```
-/// assert!(mpv.set_option("speed",-1.0).err() == Error::MPV_ERROR_UNINITIALIZED);
-/// // setting option "speed" with a negative value makes no sense
-/// // however sending floats for speed make sense, hence it did not send MPV_ERROR_OPTION_FORMAT
-/// ```
 ///
 /// # MPV_ERROR_OPTION_NOT_FOUND
 /// Trying to set an option that doesn't exist.
 ///
-/// ## Example
-///
-/// ```
-/// assert!(mpv.set_option("option_that_does_not_exist",0.5).err() == Error::MPV_ERROR_OPTION_NOT_FOUND);
-/// ```
+/// For a full list of options, see [here](http://mpv.io/manual/master/#options)
 ///
 /// # MPV_ERROR_OPTION_FORMAT
 ///
@@ -104,11 +92,6 @@ enum_from_primitive! {
 ///
 /// Note that in most of the cases, when the libmpv option/property expect an integer
 /// and gets a &str, it will try to convert the said str and a integer.
-///
-/// ```
-/// assert!(mpv.set_option("loop","2").is_ok());
-/// assert!(mpv.set_option("sid",4.5).err() == Error::MPV_ERROR_OPTION_FORMAT);
-/// ```
 ///
 /// # MPV_ERROR_OPTION_ERROR
 /// Setting the option failed. Typically this happens if the provided option
