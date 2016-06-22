@@ -4,7 +4,7 @@ use mpv_gen::{mpv_command, mpv_command_async, mpv_wait_event, mpv_create, mpv_in
               mpv_get_property_async, mpv_opengl_cb_get_proc_address_fn, mpv_get_sub_api,
               mpv_opengl_cb_uninit_gl, mpv_opengl_cb_init_gl, mpv_opengl_cb_draw,
               mpv_opengl_cb_context, mpv_observe_property, mpv_unobserve_property,
-              mpv_opengl_cb_set_update_callback};
+              mpv_opengl_cb_set_update_callback, mpv_get_time_us};
 use mpv_enums::*;
 use mpv_error::*;
 
@@ -378,6 +378,13 @@ impl MpvHandler {
     /// Get the raw pointer for the mpv_handle. Use with care.
     pub fn raw(&self) -> *mut mpv_handle {
         self.handle
+    }
+
+    /// See `mpv_get_time_us`.
+    pub fn get_time_us(&self) -> i64 {
+        unsafe {
+            mpv_get_time_us(self.handle)
+        }
     }
 }
 

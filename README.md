@@ -50,7 +50,6 @@ Any contribution is welcome, as well as any code review !
 
 ### MpvHandler impls :
 
-* [get_time_us](https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L537)
 * resume / suspend core (**not** pause/unpause !)
 * load_config_file
 * detach_destroy (if only I knew what this was for ?)
