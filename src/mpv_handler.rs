@@ -23,7 +23,7 @@ pub struct MpvHandler {
 
 
 ///
-/// This struct is a decorator of MpvHandler, and can use all the functions from MpvHandler.
+/// This struct is a decorator of `MpvHandler`, and can use all the functions from `MpvHandler`.
 /// It is only used when you must embed mpv somewhere else using openGL.
 ///
 pub struct MpvHandlerWithGl {
@@ -36,11 +36,11 @@ pub struct MpvHandlerBuilder {
     handle: *mut mpv_handle,
 }
 
-/// A must-use MpvHandler Builder.
+/// A must-use `MpvHandler` builder.
 ///
-/// * **Step 1** : call new() to create a Builder.
+/// * **Step 1** : call `MpvHandler::new()` to create a Builder.
 /// * **Step 2** : Add options to your player
-/// * **Step 3** : Finish creating your MpvHandler, either with build() or build_with_gl(...)
+/// * **Step 3** : Finish creating your `MpvHandler`, either with `build()` or `build_with_gl(...)`
 ///
 impl MpvHandlerBuilder {
 

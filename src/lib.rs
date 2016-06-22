@@ -46,7 +46,7 @@
 //! >   (Technically, this also suppresses C signal handling.)
 //! > * No config files will be loaded. This is roughly equivalent to using
 //! >   --no-config. Since libmpv 1.15, you can actually re-enable this option,
-//! >   which will make libmpv load config files during mpv.init(). If you
+//! >   which will make libmpv load config files during `mpv.init()`. If you
 //! >   do this, you are strongly encouraged to set the "config-dir" option too.
 //! >   (Otherwise it will load the mpv command line player's config.)
 //! > * Idle mode is enabled, which means the playback core will enter idle mode
@@ -54,19 +54,19 @@
 //! >   exiting. This is equivalent to the --idle option.
 //! > * Disable parts of input handling.
 //! > * Most of the different settings can be viewed with the command line player
-//! >   by running "mpv --show-profile=libmpv".
+//! >   by running `mpv --show-profile=libmpv`.
 //!
 //! # Event loop
 //!
 //! In general, the API user should run an event loop in order to receive events.
-//! This event loop should call mpv.wait_event(...), which will return once a new
+//! This event loop should call `mpv.wait_event(...)`, which will return once a new
 //! mpv client API is available. It is also possible to integrate client API
 //! usage in other event loops (e.g. GUI toolkits) with the
-//! mpv.set_wakeup_callback() function, and then polling for events by calling
-//! mpv_wait_event() with a 0 timeout.
+//! `mpv.set_wakeup_callback()` function, and then polling for events by calling
+//! `mpv_wait_event()` with a 0 timeout.
 //!
 //! Note that the event loop is detached from the actual player. Not calling
-//! mpv.wait_event() will not stop playback. It will eventually congest the
+//! `mpv.wait_event()` will not stop playback. It will eventually congest the
 //! event queue of your API handle, though, that is why should still empty
 //! the event loop, even though you do not use the events.
 //!
@@ -83,21 +83,21 @@
 //! The client API includes asynchronous functions. These allow you to send
 //! requests instantly, and get replies as events at a later point. The
 //! requests are made with functions carrying the _async suffix, and replies
-//! are returned by mpv.wait_event(...) (interleaved with the normal event stream).
+//! are returned by `mpv.wait_event(...)` (interleaved with the normal event stream).
 //!
 //! A unsigned userdata value is used to allow the user to associate requests
-//! with replies. The value is passed as reply_userdata parameter to the request
+//! with replies. The value is passed as `reply_userdata` parameter to the request
 //! function. The reply to the request will have the reply
-//! MpvEvent.reply_userdata field set to the same value as the
+//! `MpvEvent.reply_userdata` field set to the same value as the
 //! userdata parameter of the corresponding request.
 //!
 //! This userdata value is arbitrary and is never interpreted by the libmpv API nor this crate.
 //!
 //! > *Note that the userdata value 0 is also allowed, but then the client must be
-//! > careful not accidentally interpret the mpv_event->reply_userdata if an
+//! > careful not accidentally interpret the `mpv_event->reply_userdata` if an
 //! > event is not a reply. (For non-replies, this field is set to 0.)*
 //!
-//! This comment is from the libmpv API and is not valid in this crate since the reply_userdata
+//! This comment is from the libmpv API and is not valid in this crate since the `reply_userdata`
 //! field is suppressed for non-reply events
 //!
 //! Currently, asynchronous calls are always strictly ordered (even with
@@ -113,19 +113,19 @@
 //! # Basic environment requirements
 //!
 //! This documents basic requirements on the C environment. This is especially
-//! important if mpv is used as library with mpv_create(), such as with this mpv-rs crate.
+//! important if mpv is used as library with `mpv_create()`, such as with this mpv-rs crate.
 //!
-//! * The LC_NUMERIC locale category must be set to "C". If your program calls
-//!   setlocale(), be sure not to use LC_ALL, or if you do, reset LC_NUMERIC
-//!   to its sane default: setlocale(LC_NUMERIC, "C").
+//! * The `LC_NUMERIC` locale category must be set to "C". If your program calls
+//!   setlocale(), be sure not to use `LC_ALL`, or if you do, reset `LC_NUMERIC`
+//!   to its sane default: `setlocale(LC_NUMERIC, "C")`.
 //! * If a X11 based VO is used, mpv will set the xlib error handler. This error
 //!   handler is process-wide, and there's no proper way to share it with other
 //!   xlib users within the same process. This might confuse GUI toolkits.
 //! * mpv uses some other libraries that are not library-safe, such as Fribidi
 //!   (used through libass), ALSA, FFmpeg, and possibly more.
 //! * The FPU precision must be set at least to double precision.
-//! * On Windows, mpv will call timeBeginPeriod(1).
-//! * On UNIX, every mpv_initialize() call will block SIGPIPE. This is done
+//! * On Windows, mpv will call `timeBeginPeriod(1)`.
+//! * On UNIX, every `mpv_initialize()` call will block SIGPIPE. This is done
 //!   because FFmpeg makes unsafe use of OpenSSL and GnuTLS, which can raise
 //!   this signal under certain circumstances. Once these libraries (or FFmpeg)
 //!   are fixed, libmpv will not block the signal anymore.
@@ -165,8 +165,8 @@ pub use mpv_enums::{
 pub use mpv_types::* ;
 pub use mpv_gen::mpv_opengl_cb_get_proc_address_fn;
 
-/// Returns the MPV_CLIENT_API_VERSION the mpv source has been compiled with
-/// as (major_v,minor_v)
+/// Returns the `MPV_CLIENT_API_VERSION` the mpv source has been compiled with
+/// as `(major_v,minor_v)`
 
 pub fn client_api_version() -> (u16,u16) {
     let api_version : ::std::os::raw::c_ulong = unsafe {

@@ -136,14 +136,14 @@ pub fn to_event<'a>(event_id:MpvEventId,
 }
 
 ///
-/// Event replies GetPropertyReply and PropertyChange will answer this object.
+/// Event replies `GetPropertyReply` and `PropertyChange` will answer this object.
 ///
 /// This list is incomplete, the current formats are missing :
 ///
-/// * Node
-/// * NodeArray
-/// * NodeMap
-/// * ByteArray
+/// * `Node`
+/// * `NodeArray`
+/// * `NodeMap`
+/// * `ByteArray`
 
 #[derive(Debug)]
 pub enum Format<'a>{
