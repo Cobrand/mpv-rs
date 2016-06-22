@@ -75,6 +75,7 @@ impl MpvHandlerBuilder {
         option.call_as_c_void(|ptr:*mut c_void|{
             ret = unsafe {
                 mpv_set_option(self.handle,
+                               #[allow(temporary_cstring_as_ptr)]
                                ffi::CString::new(property).unwrap().as_ptr(),
                                format,
                                ptr)
@@ -217,6 +218,7 @@ impl MpvHandler {
         value.call_as_c_void(|ptr:*mut c_void|{
             ret = unsafe {
                 mpv_set_property(self.handle,
+                                 #[allow(temporary_cstring_as_ptr)]
                                  ffi::CString::new(property).unwrap().as_ptr(),
                                  format,
                                  ptr)
@@ -234,6 +236,7 @@ impl MpvHandler {
             ret = unsafe {
                 mpv_set_property_async(self.handle,
                                        userdata,
+                                       #[allow(temporary_cstring_as_ptr)]
                                        ffi::CString::new(property).unwrap().as_ptr(),
                                        format,
                                        ptr)
@@ -249,6 +252,7 @@ impl MpvHandler {
         let result = T::get_from_c_void(|ptr:*mut c_void|{
             ret = unsafe {
                 mpv_get_property(self.handle,
+                                 #[allow(temporary_cstring_as_ptr)]
                                  ffi::CString::new(property).unwrap().as_ptr(),
                                  format,
                                  ptr)
@@ -263,6 +267,7 @@ impl MpvHandler {
         let ret = unsafe {
             mpv_get_property_async(self.handle,
                                    userdata,
+                                   #[allow(temporary_cstring_as_ptr)]
                                    ffi::CString::new(property).unwrap().as_ptr(),
                                    T::get_mpv_format())
         };
@@ -285,6 +290,7 @@ impl MpvHandler {
         option.call_as_c_void(|ptr:*mut c_void|{
             ret = unsafe {
                 mpv_set_option(self.handle,
+                                 #[allow(temporary_cstring_as_ptr)]
                                  ffi::CString::new(property).unwrap().as_ptr(),
                                  format,
                                  ptr)
@@ -352,6 +358,7 @@ impl MpvHandler {
         let ret = unsafe {
             mpv_observe_property(self.handle,
                                  userdata,
+                                 #[allow(temporary_cstring_as_ptr)]
                                  ffi::CString::new(name).unwrap().as_ptr(),
                                  T::get_mpv_format())
         };
