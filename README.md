@@ -11,6 +11,9 @@ see [here](https://github.com/mpv-player/mpv).
 
 # Installing
 
+    [dependencies]
+    mpv = "0.2"
+
 the mpv package is needed for this to run.
 
 ## Linux
@@ -19,17 +22,32 @@ On linux, you can ask your package manager to install it for you.
 
 ### Arch
 
-    $ sudo pacman -S mpv
+    # pacman -S mpv
 
 ### Debian-based systems
 
-    $ sudo apt-get install libmpv1
+    # apt-get install libmpv1
 
 ## Windows
 
 libmpv can be found [here](https://mpv.srsfckn.biz/) for windows.
 You need to copy the library into your rust binaries folder for it to be
 linked properly.
+
+# Running
+
+2 examples are available from the get go in this crate.
+
+_simple.rs_ will alow you to display a standard mpv player in a new window.
+Controls will be available.
+
+    $ cargo run --example simple
+
+_sdl2.rs_ will embed mpv in an sdl2 window. Controls will not be available and
+cannot be. If you want an interface on top of this player,
+you must draw your own with OpenGL calls or SDL2 calls.
+
+    $ cargo run --example sdl2
 
 # Contributing
 
@@ -39,20 +57,21 @@ Any contribution is welcome, as well as any code review !
 
 ### Events :
 
-* ClientMessage
+* [ClientMessage](https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L1375)
 
 ### Formats :
 
-* Node
-* NodeList
+* [Node](https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L677)
+* [NodeList](https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L716)
 * NodeMap
-* ByteArray
+* [ByteArray](https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L716)
 
 ### MpvHandler impls :
 
-* resume / suspend core (**not** pause/unpause !)
+* [resume](https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L523) / suspend core (**not** pause/unpause !)
 * load_config_file
-* detach_destroy (if only I knew what this was for ?)
+* [detach_destroy](https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L431)
+(if only I knew what this was for ?)
 * [client_name](https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L361)
 * set_wakeup_callback
 * get_wakeup_pipe
@@ -62,15 +81,21 @@ Any contribution is welcome, as well as any code review !
 ### MpvHandlerWithGl impls :
 
 * raw_opengl_ctx() : return the raw opengl context
-* report_flip
-* set_update_callback (partly implemented via update_available)
+* [report_flip](https://github.com/mpv-player/mpv/blob/master/libmpv/opengl_cb.h#L313)
+* [set_update_callback](https://github.com/mpv-player/mpv/blob/master/libmpv/opengl_cb.h#L217) (partially implemented via update_available)
+
+## API breaks and version numbers
+
+* Minor beta changes (0.X.0) -> (0.X.1) are non-breaking changes.
+* Major beta changes (0.1.X) -> (0.2.0) will probably break the API.
+* Once this binding is finished, this crate will be released as 1.0.0
 
 # Submitting an issue
 
-An question concerning the mpv-rs API is welcome in the issues.
+Any question concerning the mpv-rs API is welcome in the issues.
 
-If your mpv crashes, please make sure it's coming from this API and not from the
- mpv player itself.
+If your mpv crashes, please make sure it's coming from this Rust binding and
+not from the mpv player itself.
 
 # License
 
