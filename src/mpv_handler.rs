@@ -84,6 +84,12 @@ impl MpvHandlerBuilder {
         ret_to_result(ret,())
     }
 
+    /// shortcut for `set_option("hwdec","auto")`
+    ///
+    /// If it is available, the playing will try hardware decoding
+    pub fn try_hardware_decoding(&mut self) -> Result<()> {
+        self.set_option("hwdec","auto")
+    }
 
     ///
     /// Finish creating your player. It will spawn a new window on your window manager.

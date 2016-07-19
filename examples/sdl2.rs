@@ -59,7 +59,8 @@ fn sdl_example(video_path: &Path) {
                 .gl_set_context_to_current()
                 .unwrap();
         let ptr = &mut video_subsystem as *mut _ as *mut c_void;
-        let mpv_builder = mpv::MpvHandlerBuilder::new().expect("Error while creating MPV builder");
+        let mut mpv_builder = mpv::MpvHandlerBuilder::new().expect("Error while creating MPV builder");
+        mpv_builder.try_hardware_decoding();
         let mut mpv : Box<mpv::MpvHandlerWithGl> = mpv_builder.build_with_gl(Some(get_proc_address), ptr).expect("Error while initializing MPV with opengl");
         // observe the property "pause" with userdata 5.
         // When we will pause later, an event PropertyChange will be sent with userdata 5
