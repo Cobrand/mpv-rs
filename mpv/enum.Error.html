@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Error` enum in crate `mpv`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Error">
+
+    <title>mpv::Error - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>mpv</a></p><script>window.sidebarCurrent = {name: 'Error', ty: 'enum', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content enum">
+<h1 class='fqn'><span class='in-band'>Enum <a href='index.html'>mpv</a>::<wbr><a class='enum' href=''>Error</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span></span></h1>
+<pre class='rust enum'>pub enum Error {
+    MPV_ERROR_SUCCESS,
+    MPV_ERROR_EVENT_QUEUE_FULL,
+    MPV_ERROR_NOMEM,
+    MPV_ERROR_UNINITIALIZED,
+    MPV_ERROR_INVALID_PARAMETER,
+    MPV_ERROR_OPTION_NOT_FOUND,
+    MPV_ERROR_OPTION_FORMAT,
+    MPV_ERROR_OPTION_ERROR,
+    MPV_ERROR_PROPERTY_NOT_FOUND,
+    MPV_ERROR_PROPERTY_FORMAT,
+    MPV_ERROR_PROPERTY_UNAVAILABLE,
+    MPV_ERROR_PROPERTY_ERROR,
+    MPV_ERROR_COMMAND,
+    MPV_ERROR_LOADING_FAILED,
+    MPV_ERROR_AO_INIT_FAILED,
+    MPV_ERROR_VO_INIT_FAILED,
+    MPV_ERROR_NOTHING_TO_PLAY,
+    MPV_ERROR_UNKNOWN_FORMAT,
+    MPV_ERROR_UNSUPPORTED,
+    MPV_ERROR_NOT_IMPLEMENTED,
+}</pre><div class='docblock'>
+<h1 id='mpv_error_success' class='section-header'><a href='#mpv_error_success'>MPV_ERROR_SUCCESS</a></h1>
+<p>No error happened (used to signal successful operation)</p>
+
+<h1 id='mpv_error_event_queue_full' class='section-header'><a href='#mpv_error_event_queue_full'>MPV_ERROR_EVENT_QUEUE_FULL</a></h1>
+<p>The event ringbuffer is full. This means the client is choked, and can&#39;t
+receive any events. This can happen when too many asynchronous requests
+have been made, but not answered. Probably never happens in practice,
+unless the mpv core is frozen for some reason, and the client keeps
+making asynchronous requests. (Bugs in the client API implementation
+could also trigger this, e.g. if events become &quot;lost&quot;.)</p>
+
+<h1 id='mpv_error_nomem' class='section-header'><a href='#mpv_error_nomem'>MPV_ERROR_NOMEM</a></h1>
+<p>&#39;Memory allocation failed&#39; error</p>
+
+<h1 id='mpv_error_uninitialized' class='section-header'><a href='#mpv_error_uninitialized'>MPV_ERROR_UNINITIALIZED</a></h1>
+<p>The mpv core wasn&#39;t configured and initialized yet. See mpv.init()
+for additional details</p>
+
+<h1 id='mpv_error_invalid_parameter' class='section-header'><a href='#mpv_error_invalid_parameter'>MPV_ERROR_INVALID_PARAMETER</a></h1>
+<p>Generic catch-all error if a parameter is set to an invalid or
+unsupported value. This is used if there is no better error code.</p>
+
+<p>Typically this is sent when you are trying to set properties or options
+where the value is not supported, but the format itself is</p>
+
+<h1 id='mpv_error_option_not_found' class='section-header'><a href='#mpv_error_option_not_found'>MPV_ERROR_OPTION_NOT_FOUND</a></h1>
+<p>Trying to set an option that doesn&#39;t exist.</p>
+
+<p>For a full list of options, see <a href="http://mpv.io/manual/master/#options">here</a></p>
+
+<h1 id='mpv_error_option_format' class='section-header'><a href='#mpv_error_option_format'>MPV_ERROR_OPTION_FORMAT</a></h1>
+<p>Trying to set an option using an unsupported format.</p>
+
+<h2 id='example' class='section-header'><a href='#example'>Example</a></h2>
+<p>Sending a &#39;sid&#39; value as a float.</p>
+
+<p>Note that in most of the cases, when the libmpv option/property expect an integer
+and gets a &amp;str, it will try to convert the said str and a integer.</p>
+
+<h1 id='mpv_error_option_error' class='section-header'><a href='#mpv_error_option_error'>MPV_ERROR_OPTION_ERROR</a></h1>
+<p>Setting the option failed. Typically this happens if the provided option
+value could not be parsed</p>
+
+<h1 id='mpv_error_property_not_found' class='section-header'><a href='#mpv_error_property_not_found'>MPV_ERROR_PROPERTY_NOT_FOUND</a></h1>
+<p>The accessed property doesn&#39;t exist</p>
+
+<h1 id='mpv_error_property_format' class='section-header'><a href='#mpv_error_property_format'>MPV_ERROR_PROPERTY_FORMAT</a></h1>
+<p>Trying to set or get a property using an unsupported MPV_FORMAT.
+See MPV_ERROR_OPTION_FORMAT for more details.</p>
+
+<h1 id='mpv_error_property_unavailable' class='section-header'><a href='#mpv_error_property_unavailable'>MPV_ERROR_PROPERTY_UNAVAILABLE</a></h1>
+<p>The property exists, but is not available.</p>
+
+<h2 id='example-1' class='section-header'><a href='#example-1'>Example</a></h2>
+<p>This usually happens when the
+associated subsystem is not active, e.g. querying audio parameters while
+audio is disabled.</p>
+
+<h1 id='mpv_error_property_error' class='section-header'><a href='#mpv_error_property_error'>MPV_ERROR_PROPERTY_ERROR</a></h1>
+<p>Error setting or getting a property</p>
+
+<h1 id='mpv_error_command' class='section-header'><a href='#mpv_error_command'>MPV_ERROR_COMMAND</a></h1>
+<p>General error when running a command with mpv_command and similar</p>
+
+<h1 id='mpv_error_loading_failed' class='section-header'><a href='#mpv_error_loading_failed'>MPV_ERROR_LOADING_FAILED</a></h1>
+<p>Generic error on loading (used with MpvEventEndFile.error).</p>
+
+<h1 id='mpv_error_ao_init_failed' class='section-header'><a href='#mpv_error_ao_init_failed'>MPV_ERROR_AO_INIT_FAILED</a></h1>
+<p>Initializing the audio output failed.</p>
+
+<h1 id='mpv_error_vo_init_failed' class='section-header'><a href='#mpv_error_vo_init_failed'>MPV_ERROR_VO_INIT_FAILED</a></h1>
+<p>Initializing the video output failed.</p>
+
+<h1 id='mpv_error_nothing_to_play' class='section-header'><a href='#mpv_error_nothing_to_play'>MPV_ERROR_NOTHING_TO_PLAY</a></h1>
+<p>There was no audio or video data to play. This also happens if the
+file was recognized, but did not contain any audio or video streams,
+or no streams were selected.</p>
+
+<h1 id='mpv_error_unknown_format' class='section-header'><a href='#mpv_error_unknown_format'>MPV_ERROR_UNKNOWN_FORMAT</a></h1>
+<p>When trying to load the file, the file format could not be determined,
+or the file was too broken to open it.</p>
+
+<h1 id='mpv_error_unsupported' class='section-header'><a href='#mpv_error_unsupported'>MPV_ERROR_UNSUPPORTED</a></h1>
+<p>Generic error for signaling that certain system requirements are not
+fulfilled.</p>
+
+<h1 id='mpv_error_not_implemented' class='section-header'><a href='#mpv_error_not_implemented'>MPV_ERROR_NOT_IMPLEMENTED</a></h1>
+<p>The libmpv API function which was called is a stub only
+Note that unimplemented mpv-rs functions will simply panic with unimplemented!()</p>
+</div><h2 class='variants'>Variants</h2>
+<span id='variant.MPV_ERROR_SUCCESS' class='variant'><code>MPV_ERROR_SUCCESS</code></span><span id='variant.MPV_ERROR_EVENT_QUEUE_FULL' class='variant'><code>MPV_ERROR_EVENT_QUEUE_FULL</code></span><span id='variant.MPV_ERROR_NOMEM' class='variant'><code>MPV_ERROR_NOMEM</code></span><span id='variant.MPV_ERROR_UNINITIALIZED' class='variant'><code>MPV_ERROR_UNINITIALIZED</code></span><span id='variant.MPV_ERROR_INVALID_PARAMETER' class='variant'><code>MPV_ERROR_INVALID_PARAMETER</code></span><span id='variant.MPV_ERROR_OPTION_NOT_FOUND' class='variant'><code>MPV_ERROR_OPTION_NOT_FOUND</code></span><span id='variant.MPV_ERROR_OPTION_FORMAT' class='variant'><code>MPV_ERROR_OPTION_FORMAT</code></span><span id='variant.MPV_ERROR_OPTION_ERROR' class='variant'><code>MPV_ERROR_OPTION_ERROR</code></span><span id='variant.MPV_ERROR_PROPERTY_NOT_FOUND' class='variant'><code>MPV_ERROR_PROPERTY_NOT_FOUND</code></span><span id='variant.MPV_ERROR_PROPERTY_FORMAT' class='variant'><code>MPV_ERROR_PROPERTY_FORMAT</code></span><span id='variant.MPV_ERROR_PROPERTY_UNAVAILABLE' class='variant'><code>MPV_ERROR_PROPERTY_UNAVAILABLE</code></span><span id='variant.MPV_ERROR_PROPERTY_ERROR' class='variant'><code>MPV_ERROR_PROPERTY_ERROR</code></span><span id='variant.MPV_ERROR_COMMAND' class='variant'><code>MPV_ERROR_COMMAND</code></span><span id='variant.MPV_ERROR_LOADING_FAILED' class='variant'><code>MPV_ERROR_LOADING_FAILED</code></span><span id='variant.MPV_ERROR_AO_INIT_FAILED' class='variant'><code>MPV_ERROR_AO_INIT_FAILED</code></span><span id='variant.MPV_ERROR_VO_INIT_FAILED' class='variant'><code>MPV_ERROR_VO_INIT_FAILED</code></span><span id='variant.MPV_ERROR_NOTHING_TO_PLAY' class='variant'><code>MPV_ERROR_NOTHING_TO_PLAY</code></span><span id='variant.MPV_ERROR_UNKNOWN_FORMAT' class='variant'><code>MPV_ERROR_UNKNOWN_FORMAT</code></span><span id='variant.MPV_ERROR_UNSUPPORTED' class='variant'><code>MPV_ERROR_UNSUPPORTED</code></span><span id='variant.MPV_ERROR_NOT_IMPLEMENTED' class='variant'><code>MPV_ERROR_NOT_IMPLEMENTED</code></span><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html' title='std::error::Error'>Error</a> for <a class='enum' href='../mpv/enum.Error.html' title='mpv::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-14' class='srclink' href='../src/mpv/mpv_error.rs.html#10-16' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.description' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html#tymethod.description' class='fnname'>description</a>(&amp;self) -&gt; &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></h4>
+<div class='docblock'><p>A short description of the error. <a href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html#tymethod.description">Read more</a></p>
+</div><h4 id='method.cause' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html#method.cause' class='fnname'>cause</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a class='trait' href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html' title='std::error::Error'>Error</a>&gt;</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>The lower-level cause of this error, if any.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html' title='core::fmt::Display'>Display</a> for <a class='enum' href='../mpv/enum.Error.html' title='mpv::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-19' class='srclink' href='../src/mpv/mpv_error.rs.html#18-22' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='enum' href='../mpv/enum.Error.html' title='mpv::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-315' class='srclink' href='../src/mpv/mpv_gen.rs.html#57' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt-1' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a> for <a class='enum' href='../mpv/enum.Error.html' title='mpv::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-339' class='srclink' href='../src/mpv/mpv_gen.rs.html#57' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='enum' href='../mpv/enum.Error.html' title='mpv::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-340' class='srclink' href='../src/mpv/mpv_gen.rs.html#57' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='enum' href='../mpv/enum.Error.html' title='mpv::Error'>Error</a></code></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='../num_traits/cast/trait.FromPrimitive.html' title='num_traits::cast::FromPrimitive'>FromPrimitive</a> for <a class='enum' href='../mpv/enum.Error.html' title='mpv::Error'>Error</a></code></span><span class='out-of-band'></span></h3>
+<div class='impl-items'><h4 id='method.from_i64' class='method'><code>fn <a href='../num_traits/cast/trait.FromPrimitive.html#tymethod.from_i64' class='fnname'>from_i64</a>(n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i64.html'>i64</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Convert an <code>i64</code> to return an optional value of this type. If the type cannot be represented by this value, the <code>None</code> is returned. <a href="../num_traits/cast/trait.FromPrimitive.html#tymethod.from_i64">Read more</a></p>
+</div><h4 id='method.from_u64' class='method'><code>fn <a href='../num_traits/cast/trait.FromPrimitive.html#tymethod.from_u64' class='fnname'>from_u64</a>(n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Convert an <code>u64</code> to return an optional value of this type. If the type cannot be represented by this value, the <code>None</code> is returned. <a href="../num_traits/cast/trait.FromPrimitive.html#tymethod.from_u64">Read more</a></p>
+</div><h4 id='method.from_isize' class='method'><code>fn <a href='../num_traits/cast/trait.FromPrimitive.html#method.from_isize' class='fnname'>from_isize</a>(n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.isize.html'>isize</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Convert an <code>isize</code> to return an optional value of this type. If the value cannot be represented by this value, the <code>None</code> is returned. <a href="../num_traits/cast/trait.FromPrimitive.html#method.from_isize">Read more</a></p>
+</div><h4 id='method.from_i8' class='method'><code>fn <a href='../num_traits/cast/trait.FromPrimitive.html#method.from_i8' class='fnname'>from_i8</a>(n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i8.html'>i8</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Convert an <code>i8</code> to return an optional value of this type. If the type cannot be represented by this value, the <code>None</code> is returned. <a href="../num_traits/cast/trait.FromPrimitive.html#method.from_i8">Read more</a></p>
+</div><h4 id='method.from_i16' class='method'><code>fn <a href='../num_traits/cast/trait.FromPrimitive.html#method.from_i16' class='fnname'>from_i16</a>(n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i16.html'>i16</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Convert an <code>i16</code> to return an optional value of this type. If the type cannot be represented by this value, the <code>None</code> is returned. <a href="../num_traits/cast/trait.FromPrimitive.html#method.from_i16">Read more</a></p>
+</div><h4 id='method.from_i32' class='method'><code>fn <a href='../num_traits/cast/trait.FromPrimitive.html#method.from_i32' class='fnname'>from_i32</a>(n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Convert an <code>i32</code> to return an optional value of this type. If the type cannot be represented by this value, the <code>None</code> is returned. <a href="../num_traits/cast/trait.FromPrimitive.html#method.from_i32">Read more</a></p>
+</div><h4 id='method.from_usize' class='method'><code>fn <a href='../num_traits/cast/trait.FromPrimitive.html#method.from_usize' class='fnname'>from_usize</a>(n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Convert a <code>usize</code> to return an optional value of this type. If the type cannot be represented by this value, the <code>None</code> is returned. <a href="../num_traits/cast/trait.FromPrimitive.html#method.from_usize">Read more</a></p>
+</div><h4 id='method.from_u8' class='method'><code>fn <a href='../num_traits/cast/trait.FromPrimitive.html#method.from_u8' class='fnname'>from_u8</a>(n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Convert an <code>u8</code> to return an optional value of this type. If the type cannot be represented by this value, the <code>None</code> is returned. <a href="../num_traits/cast/trait.FromPrimitive.html#method.from_u8">Read more</a></p>
+</div><h4 id='method.from_u16' class='method'><code>fn <a href='../num_traits/cast/trait.FromPrimitive.html#method.from_u16' class='fnname'>from_u16</a>(n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u16.html'>u16</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Convert an <code>u16</code> to return an optional value of this type. If the type cannot be represented by this value, the <code>None</code> is returned. <a href="../num_traits/cast/trait.FromPrimitive.html#method.from_u16">Read more</a></p>
+</div><h4 id='method.from_u32' class='method'><code>fn <a href='../num_traits/cast/trait.FromPrimitive.html#method.from_u32' class='fnname'>from_u32</a>(n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Convert an <code>u32</code> to return an optional value of this type. If the type cannot be represented by this value, the <code>None</code> is returned. <a href="../num_traits/cast/trait.FromPrimitive.html#method.from_u32">Read more</a></p>
+</div><h4 id='method.from_f32' class='method'><code>fn <a href='../num_traits/cast/trait.FromPrimitive.html#method.from_f32' class='fnname'>from_f32</a>(n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.f32.html'>f32</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Convert a <code>f32</code> to return an optional value of this type. If the type cannot be represented by this value, the <code>None</code> is returned. <a href="../num_traits/cast/trait.FromPrimitive.html#method.from_f32">Read more</a></p>
+</div><h4 id='method.from_f64' class='method'><code>fn <a href='../num_traits/cast/trait.FromPrimitive.html#method.from_f64' class='fnname'>from_f64</a>(n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.f64.html'>f64</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Convert a <code>f64</code> to return an optional value of this type. If the type cannot be represented by this value, the <code>None</code> is returned. <a href="../num_traits/cast/trait.FromPrimitive.html#method.from_f64">Read more</a></p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "mpv";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

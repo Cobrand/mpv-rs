@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Event` enum in crate `mpv`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Event">
+
+    <title>mpv::Event - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>mpv</a></p><script>window.sidebarCurrent = {name: 'Event', ty: 'enum', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content enum">
+<h1 class='fqn'><span class='in-band'>Enum <a href='index.html'>mpv</a>::<wbr><a class='enum' href=''>Event</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-95' class='srclink' href='../src/mpv/mpv_enums.rs.html#27-69' title='goto source code'>[src]</a></span></h1>
+<pre class='rust enum'>pub enum Event&lt;'a&gt; {
+    Shutdown,
+    LogMessage {
+        prefix: &amp;'static <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>,
+        level: &amp;'static <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>,
+        text: &amp;'static <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>,
+        log_level: <a class='enum' href='../mpv/enum.LogLevel.html' title='mpv::LogLevel'>LogLevel</a>,
+    },
+    GetPropertyReply {
+        name: &amp;'static <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>,
+        result: <a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;<a class='enum' href='../mpv/enum.Format.html' title='mpv::Format'>Format</a>&lt;'a&gt;&gt;,
+        reply_userdata: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>,
+    },
+    SetPropertyReply(<a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;,&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>),
+    CommandReply(<a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;,&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>),
+    StartFile,
+    EndFile(<a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;<a class='enum' href='../mpv/enum.EndFileReason.html' title='mpv::EndFileReason'>EndFileReason</a>&gt;),
+    FileLoaded,
+    TracksChanged,
+    TrackSwitched,
+    Idle,
+    Pause,
+    Unpause,
+    Tick,
+    ClientMessage,
+    VideoReconfig,
+    AudioReconfig,
+    MetadataUpdate,
+    Seek,
+    PlaybackRestart,
+    PropertyChange {
+        name: &amp;'static <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>,
+        change: <a class='enum' href='../mpv/enum.Format.html' title='mpv::Format'>Format</a>&lt;'a&gt;,
+        reply_userdata: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>,
+    },
+    ChapterChange,
+    QueueOverflow,
+    Unused,
+}</pre><h2 class='variants'>Variants</h2>
+<span id='variant.Shutdown' class='variant'><code>Shutdown</code></span><div class='docblock'><p>Received when the player is shutting down</p>
+</div><span id='variant.LogMessage' class='variant'><code>LogMessage</code></span><div class='docblock'><p><em>Has not been tested</em>, received when explicitly asked to MPV</p>
+</div><h3 class='fields'>Fields</h3>
+
+                           <table><tr><td id='variant.LogMessage.field.prefix'><code>prefix:&nbsp;&amp;'static <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></td><td></td></tr><tr><td id='variant.LogMessage.field.level'><code>level:&nbsp;&amp;'static <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></td><td></td></tr><tr><td id='variant.LogMessage.field.text'><code>text:&nbsp;&amp;'static <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></td><td></td></tr><tr><td id='variant.LogMessage.field.log_level'><code>log_level:&nbsp;<a class='enum' href='../mpv/enum.LogLevel.html' title='mpv::LogLevel'>LogLevel</a></code></td><td></td></tr></table><span id='variant.GetPropertyReply' class='variant'><code>GetPropertyReply</code></span><div class='docblock'><p>Received when using get_property_async</p>
+</div><h3 class='fields'>Fields</h3>
+
+                           <table><tr><td id='variant.GetPropertyReply.field.name'><code>name:&nbsp;&amp;'static <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></td><td></td></tr><tr><td id='variant.GetPropertyReply.field.result'><code>result:&nbsp;<a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;<a class='enum' href='../mpv/enum.Format.html' title='mpv::Format'>Format</a>&lt;'a&gt;&gt;</code></td><td></td></tr><tr><td id='variant.GetPropertyReply.field.reply_userdata'><code>reply_userdata:&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></td><td></td></tr></table><span id='variant.SetPropertyReply' class='variant'><code>SetPropertyReply(<a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;,&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>)</code></span><div class='docblock'><p>Received when using set_property_async</p>
+</div><span id='variant.CommandReply' class='variant'><code>CommandReply(<a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;,&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>)</code></span><div class='docblock'><p>Received when using command_async</p>
+</div><span id='variant.StartFile' class='variant'><code>StartFile</code></span><div class='docblock'><p>Event received when a new file is playing</p>
+</div><span id='variant.EndFile' class='variant'><code>EndFile(<a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;<a class='enum' href='../mpv/enum.EndFileReason.html' title='mpv::EndFileReason'>EndFileReason</a>&gt;)</code></span><div class='docblock'><p>Event received when the file being played currently has stopped, for an error or not</p>
+</div><span id='variant.FileLoaded' class='variant'><code>FileLoaded</code></span><div class='docblock'><p>Event received when a file has been <em>loaded</em>, but has not been started</p>
+</div><span id='variant.TracksChanged' class='variant'><code>TracksChanged</code></span><span id='variant.TrackSwitched' class='variant'><code>TrackSwitched</code></span><div class='docblock'><p>Deprecated</p>
+</div><span id='variant.Idle' class='variant'><code>Idle</code></span><div class='docblock'><p>Received when the player has no more files to play and is in an idle state</p>
+</div><span id='variant.Pause' class='variant'><code>Pause</code></span><div class='docblock'><p>The player paused playback</p>
+</div><span id='variant.Unpause' class='variant'><code>Unpause</code></span><div class='docblock'><p>The player started playback again</p>
+</div><span id='variant.Tick' class='variant'><code>Tick</code></span><span id='variant.ClientMessage' class='variant'><code>ClientMessage</code></span><div class='docblock'><p><strong>Unimplemented</strong></p>
+</div><span id='variant.VideoReconfig' class='variant'><code>VideoReconfig</code></span><span id='variant.AudioReconfig' class='variant'><code>AudioReconfig</code></span><span id='variant.MetadataUpdate' class='variant'><code>MetadataUpdate</code></span><span id='variant.Seek' class='variant'><code>Seek</code></span><div class='docblock'><p>The player changed current position</p>
+</div><span id='variant.PlaybackRestart' class='variant'><code>PlaybackRestart</code></span><span id='variant.PropertyChange' class='variant'><code>PropertyChange</code></span><div class='docblock'><p>Received when used with observe_property</p>
+</div><h3 class='fields'>Fields</h3>
+
+                           <table><tr><td id='variant.PropertyChange.field.name'><code>name:&nbsp;&amp;'static <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></td><td></td></tr><tr><td id='variant.PropertyChange.field.change'><code>change:&nbsp;<a class='enum' href='../mpv/enum.Format.html' title='mpv::Format'>Format</a>&lt;'a&gt;</code></td><td></td></tr><tr><td id='variant.PropertyChange.field.reply_userdata'><code>reply_userdata:&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></td><td></td></tr></table><span id='variant.ChapterChange' class='variant'><code>ChapterChange</code></span><span id='variant.QueueOverflow' class='variant'><code>QueueOverflow</code></span><div class='docblock'><p>Received when the Event Queue is full</p>
+</div><span id='variant.Unused' class='variant'><code>Unused</code></span><div class='docblock'><p>Unused event</p>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'a&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='enum' href='../mpv/enum.Event.html' title='mpv::Event'>Event</a>&lt;'a&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-51' class='srclink' href='../src/mpv/mpv_enums.rs.html#26' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "mpv";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

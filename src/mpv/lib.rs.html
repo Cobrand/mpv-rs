@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="Source to the Rust file `/home/cobrand/Code/Rust/mpv-rs/src/lib.rs`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang">
+
+    <title>lib.rs.html -- source</title>
+
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content source"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+</pre><pre class='rust '>
+<span class='doccomment'>//! libmpv bindings for Rust</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Most of the documentation in this crate is based (and even copied) from</span>
+<span class='doccomment'>//! [this file](https://github.com/mpv-player/mpv/blob/master/libmpv/client.h) and</span>
+<span class='doccomment'>//! [this file](https://github.com/mpv-player/mpv/blob/master/libmpv/opengl_cb.h)</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # License</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! the libmpv client API is licensed under ISC to ease</span>
+<span class='doccomment'>//! interoperability with other licenses. But keep in mind that the</span>
+<span class='doccomment'>//! mpv core is still mostly GPLv2+. It&#39;s up to lawyers to decide</span>
+<span class='doccomment'>//! whether applications using this API are affected by the GPL.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! One argument against this is that proprietary applications</span>
+<span class='doccomment'>//! using mplayer in slave mode is apparently tolerated, and the libmpv</span>
+<span class='doccomment'>//! API used by this crate is basically equivalent to slave mode.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! As for this crate itself, it is licensed under the zlib license.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # Additional Documentation</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Additional documentation can be found in these two files mentionned before.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Most actual interaction with this player is done through</span>
+<span class='doccomment'>//! options/commands/properties, which can be accessed through this API.</span>
+<span class='doccomment'>//! Essentially everything is done with them, including loading a file,</span>
+<span class='doccomment'>//! retrieving playback progress, and so on.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! These are documented elsewhere:</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! * http://mpv.io/manual/master/#options</span>
+<span class='doccomment'>//! * http://mpv.io/manual/master/#list-of-input-commands</span>
+<span class='doccomment'>//! * http://mpv.io/manual/master/#properties</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # Differences with mpv</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! This crate uses the libmpv API, which is different from the command line player mpv.</span>
+<span class='doccomment'>//! Event though both share the same core, some differences must be noted. Taken directly</span>
+<span class='doccomment'>//! from the libmpv docs :</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! &gt; Unlike the command line player, this will have initial settings suitable</span>
+<span class='doccomment'>//! &gt; for embedding in applications. The following settings are different:</span>
+<span class='doccomment'>//! &gt;</span>
+<span class='doccomment'>//! &gt; * stdin/stdout/stderr and the terminal will never be accessed. This is</span>
+<span class='doccomment'>//! &gt;   equivalent to setting the --no-terminal option.</span>
+<span class='doccomment'>//! &gt;   (Technically, this also suppresses C signal handling.)</span>
+<span class='doccomment'>//! &gt; * No config files will be loaded. This is roughly equivalent to using</span>
+<span class='doccomment'>//! &gt;   --no-config. Since libmpv 1.15, you can actually re-enable this option,</span>
+<span class='doccomment'>//! &gt;   which will make libmpv load config files during `mpv.init()`. If you</span>
+<span class='doccomment'>//! &gt;   do this, you are strongly encouraged to set the &quot;config-dir&quot; option too.</span>
+<span class='doccomment'>//! &gt;   (Otherwise it will load the mpv command line player&#39;s config.)</span>
+<span class='doccomment'>//! &gt; * Idle mode is enabled, which means the playback core will enter idle mode</span>
+<span class='doccomment'>//! &gt;   if there are no more files to play on the internal playlist, instead of</span>
+<span class='doccomment'>//! &gt;   exiting. This is equivalent to the --idle option.</span>
+<span class='doccomment'>//! &gt; * Disable parts of input handling.</span>
+<span class='doccomment'>//! &gt; * Most of the different settings can be viewed with the command line player</span>
+<span class='doccomment'>//! &gt;   by running `mpv --show-profile=libmpv`.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # Event loop</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! In general, the API user should run an event loop in order to receive events.</span>
+<span class='doccomment'>//! This event loop should call `mpv.wait_event(...)`, which will return once a new</span>
+<span class='doccomment'>//! mpv client API is available. It is also possible to integrate client API</span>
+<span class='doccomment'>//! usage in other event loops (e.g. GUI toolkits) with the</span>
+<span class='doccomment'>//! `mpv.set_wakeup_callback()` function, and then polling for events by calling</span>
+<span class='doccomment'>//! `mpv_wait_event()` with a 0 timeout.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Note that the event loop is detached from the actual player. Not calling</span>
+<span class='doccomment'>//! `mpv.wait_event()` will not stop playback. It will eventually congest the</span>
+<span class='doccomment'>//! event queue of your API handle, though, that is why should still empty</span>
+<span class='doccomment'>//! the event loop, even though you do not use the events.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # Synchronous vs. asynchronous calls</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! The libmpv API allows both synchronous and asynchronous calls. Synchronous calls</span>
+<span class='doccomment'>//! have to wait until the playback core is ready, which currently can take</span>
+<span class='doccomment'>//! an unbounded time (e.g. if network is slow or unresponsive). Asynchronous</span>
+<span class='doccomment'>//! calls just queue operations as requests, and return the result of the</span>
+<span class='doccomment'>//! operation as events.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # Asynchronous calls</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! The client API includes asynchronous functions. These allow you to send</span>
+<span class='doccomment'>//! requests instantly, and get replies as events at a later point. The</span>
+<span class='doccomment'>//! requests are made with functions carrying the _async suffix, and replies</span>
+<span class='doccomment'>//! are returned by `mpv.wait_event(...)` (interleaved with the normal event stream).</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! A unsigned userdata value is used to allow the user to associate requests</span>
+<span class='doccomment'>//! with replies. The value is passed as `reply_userdata` parameter to the request</span>
+<span class='doccomment'>//! function. The reply to the request will have the reply</span>
+<span class='doccomment'>//! `MpvEvent.reply_userdata` field set to the same value as the</span>
+<span class='doccomment'>//! userdata parameter of the corresponding request.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! This userdata value is arbitrary and is never interpreted by the libmpv API nor this crate.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! &gt; *Note that the userdata value 0 is also allowed, but then the client must be</span>
+<span class='doccomment'>//! &gt; careful not accidentally interpret the `mpv_event-&gt;reply_userdata` if an</span>
+<span class='doccomment'>//! &gt; event is not a reply. (For non-replies, this field is set to 0.)*</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! This comment is from the libmpv API and is not valid in this crate since the `reply_userdata`</span>
+<span class='doccomment'>//! field is suppressed for non-reply events</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Currently, asynchronous calls are always strictly ordered (even with</span>
+<span class='doccomment'>//! synchronous calls) for each client, although that may change in the future.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # Multithreading</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! The libmpv API is generally fully thread-safe, unless otherwise noted.</span>
+<span class='doccomment'>//! Currently, there is no real advantage in using more than 1 thread to access</span>
+<span class='doccomment'>//! the client API, since everything is serialized through a single lock in the</span>
+<span class='doccomment'>//! playback core.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # Basic environment requirements</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! This documents basic requirements on the C environment. This is especially</span>
+<span class='doccomment'>//! important if mpv is used as library with `mpv_create()`, such as with this mpv-rs crate.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! * The `LC_NUMERIC` locale category must be set to &quot;C&quot;. If your program calls</span>
+<span class='doccomment'>//!   setlocale(), be sure not to use `LC_ALL`, or if you do, reset `LC_NUMERIC`</span>
+<span class='doccomment'>//!   to its sane default: `setlocale(LC_NUMERIC, &quot;C&quot;)`.</span>
+<span class='doccomment'>//! * If a X11 based VO is used, mpv will set the xlib error handler. This error</span>
+<span class='doccomment'>//!   handler is process-wide, and there&#39;s no proper way to share it with other</span>
+<span class='doccomment'>//!   xlib users within the same process. This might confuse GUI toolkits.</span>
+<span class='doccomment'>//! * mpv uses some other libraries that are not library-safe, such as Fribidi</span>
+<span class='doccomment'>//!   (used through libass), ALSA, FFmpeg, and possibly more.</span>
+<span class='doccomment'>//! * The FPU precision must be set at least to double precision.</span>
+<span class='doccomment'>//! * On Windows, mpv will call `timeBeginPeriod(1)`.</span>
+<span class='doccomment'>//! * On UNIX, every `mpv_initialize()` call will block SIGPIPE. This is done</span>
+<span class='doccomment'>//!   because FFmpeg makes unsafe use of OpenSSL and GnuTLS, which can raise</span>
+<span class='doccomment'>//!   this signal under certain circumstances. Once these libraries (or FFmpeg)</span>
+<span class='doccomment'>//!   are fixed, libmpv will not block the signal anymore.</span>
+<span class='doccomment'>//! * On memory exhaustion, mpv will kill the process.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # Encoding of filenames</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Like Rust, libmpv uses UTF-8 everywhere.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! On OS X, filenames and other strings taken/returned by libmpv can have</span>
+<span class='doccomment'>//! inconsistent unicode normalization. This can sometimes lead to problems.</span>
+<span class='doccomment'>//! You have to hope for the best.</span>
+<span class='doccomment'>//!</span>
+
+
+
+<span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>enum_primitive</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>num</span>;
+
+<span class='kw'>mod</span> <span class='ident'>mpv_error</span>;
+<span class='kw'>mod</span> <span class='ident'>mpv_enums</span>;
+<span class='kw'>mod</span> <span class='ident'>mpv_gen</span>;
+<span class='kw'>mod</span> <span class='ident'>mpv_handler</span>;
+<span class='kw'>mod</span> <span class='ident'>mpv_types</span>;
+
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>mpv_error</span>::{<span class='ident'>Error</span>,<span class='prelude-ty'>Result</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>mpv_handler</span>::<span class='op'>*</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>mpv_enums</span>::{
+    <span class='ident'>SubApi</span>,
+    <span class='ident'>LogLevel</span>,
+    <span class='ident'>EndFileReason</span>,
+    <span class='ident'>Event</span>,
+    <span class='ident'>MpvFormat</span>,
+    <span class='ident'>Format</span>
+};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>mpv_types</span>::<span class='op'>*</span> ;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>mpv_gen</span>::<span class='ident'>mpv_opengl_cb_get_proc_address_fn</span>;
+
+<span class='doccomment'>/// Returns the `MPV_CLIENT_API_VERSION` the mpv source has been compiled with</span>
+<span class='doccomment'>/// as `(major_v,minor_v)`</span>
+
+<span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>client_api_version</span>() <span class='op'>-&gt;</span> (<span class='ident'>u16</span>,<span class='ident'>u16</span>) {
+    <span class='kw'>let</span> <span class='ident'>api_version</span> : ::<span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>raw</span>::<span class='ident'>c_ulong</span> <span class='op'>=</span> <span class='kw'>unsafe</span> {
+        <span class='ident'>mpv_gen</span>::<span class='ident'>mpv_client_api_version</span>()
+    };
+    ((<span class='ident'>api_version</span> <span class='op'>&gt;&gt;</span> <span class='number'>16</span>) <span class='kw'>as</span> <span class='ident'>u16</span>, (<span class='ident'>api_version</span> <span class='kw-2'>&amp;</span> <span class='number'>0xFFFF</span>) <span class='kw'>as</span> <span class='ident'>u16</span>)
+}
+</pre>
+</section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "mpv";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

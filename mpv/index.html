@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `mpv` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, mpv">
+
+    <title>mpv - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'mpv', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>mpv</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-0' class='srclink' href='../src/mpv/lib.rs.html#1-176' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>libmpv bindings for Rust</p>
+
+<p>Most of the documentation in this crate is based (and even copied) from
+<a href="https://github.com/mpv-player/mpv/blob/master/libmpv/client.h">this file</a> and
+<a href="https://github.com/mpv-player/mpv/blob/master/libmpv/opengl_cb.h">this file</a></p>
+
+<h1 id='license' class='section-header'><a href='#license'>License</a></h1>
+<p>the libmpv client API is licensed under ISC to ease
+interoperability with other licenses. But keep in mind that the
+mpv core is still mostly GPLv2+. It&#39;s up to lawyers to decide
+whether applications using this API are affected by the GPL.</p>
+
+<p>One argument against this is that proprietary applications
+using mplayer in slave mode is apparently tolerated, and the libmpv
+API used by this crate is basically equivalent to slave mode.</p>
+
+<p>As for this crate itself, it is licensed under the zlib license.</p>
+
+<h1 id='additional-documentation' class='section-header'><a href='#additional-documentation'>Additional Documentation</a></h1>
+<p>Additional documentation can be found in these two files mentionned before.</p>
+
+<p>Most actual interaction with this player is done through
+options/commands/properties, which can be accessed through this API.
+Essentially everything is done with them, including loading a file,
+retrieving playback progress, and so on.</p>
+
+<p>These are documented elsewhere:</p>
+
+<ul>
+<li><a href="http://mpv.io/manual/master/#options">http://mpv.io/manual/master/#options</a></li>
+<li><a href="http://mpv.io/manual/master/#list-of-input-commands">http://mpv.io/manual/master/#list-of-input-commands</a></li>
+<li><a href="http://mpv.io/manual/master/#properties">http://mpv.io/manual/master/#properties</a></li>
+</ul>
+
+<h1 id='differences-with-mpv' class='section-header'><a href='#differences-with-mpv'>Differences with mpv</a></h1>
+<p>This crate uses the libmpv API, which is different from the command line player mpv.
+Event though both share the same core, some differences must be noted. Taken directly
+from the libmpv docs :</p>
+
+<blockquote>
+<p>Unlike the command line player, this will have initial settings suitable
+for embedding in applications. The following settings are different:</p>
+
+<ul>
+<li>stdin/stdout/stderr and the terminal will never be accessed. This is
+equivalent to setting the --no-terminal option.
+(Technically, this also suppresses C signal handling.)</li>
+<li>No config files will be loaded. This is roughly equivalent to using
+--no-config. Since libmpv 1.15, you can actually re-enable this option,
+which will make libmpv load config files during <code>mpv.init()</code>. If you
+do this, you are strongly encouraged to set the &quot;config-dir&quot; option too.
+(Otherwise it will load the mpv command line player&#39;s config.)</li>
+<li>Idle mode is enabled, which means the playback core will enter idle mode
+if there are no more files to play on the internal playlist, instead of
+exiting. This is equivalent to the --idle option.</li>
+<li>Disable parts of input handling.</li>
+<li>Most of the different settings can be viewed with the command line player
+by running <code>mpv --show-profile=libmpv</code>.</li>
+</ul>
+</blockquote>
+
+<h1 id='event-loop' class='section-header'><a href='#event-loop'>Event loop</a></h1>
+<p>In general, the API user should run an event loop in order to receive events.
+This event loop should call <code>mpv.wait_event(...)</code>, which will return once a new
+mpv client API is available. It is also possible to integrate client API
+usage in other event loops (e.g. GUI toolkits) with the
+<code>mpv.set_wakeup_callback()</code> function, and then polling for events by calling
+<code>mpv_wait_event()</code> with a 0 timeout.</p>
+
+<p>Note that the event loop is detached from the actual player. Not calling
+<code>mpv.wait_event()</code> will not stop playback. It will eventually congest the
+event queue of your API handle, though, that is why should still empty
+the event loop, even though you do not use the events.</p>
+
+<h1 id='synchronous-vs-asynchronous-calls' class='section-header'><a href='#synchronous-vs-asynchronous-calls'>Synchronous vs. asynchronous calls</a></h1>
+<p>The libmpv API allows both synchronous and asynchronous calls. Synchronous calls
+have to wait until the playback core is ready, which currently can take
+an unbounded time (e.g. if network is slow or unresponsive). Asynchronous
+calls just queue operations as requests, and return the result of the
+operation as events.</p>
+
+<h1 id='asynchronous-calls' class='section-header'><a href='#asynchronous-calls'>Asynchronous calls</a></h1>
+<p>The client API includes asynchronous functions. These allow you to send
+requests instantly, and get replies as events at a later point. The
+requests are made with functions carrying the _async suffix, and replies
+are returned by <code>mpv.wait_event(...)</code> (interleaved with the normal event stream).</p>
+
+<p>A unsigned userdata value is used to allow the user to associate requests
+with replies. The value is passed as <code>reply_userdata</code> parameter to the request
+function. The reply to the request will have the reply
+<code>MpvEvent.reply_userdata</code> field set to the same value as the
+userdata parameter of the corresponding request.</p>
+
+<p>This userdata value is arbitrary and is never interpreted by the libmpv API nor this crate.</p>
+
+<blockquote>
+<p><em>Note that the userdata value 0 is also allowed, but then the client must be
+careful not accidentally interpret the <code>mpv_event-&gt;reply_userdata</code> if an
+event is not a reply. (For non-replies, this field is set to 0.)</em></p>
+</blockquote>
+
+<p>This comment is from the libmpv API and is not valid in this crate since the <code>reply_userdata</code>
+field is suppressed for non-reply events</p>
+
+<p>Currently, asynchronous calls are always strictly ordered (even with
+synchronous calls) for each client, although that may change in the future.</p>
+
+<h1 id='multithreading' class='section-header'><a href='#multithreading'>Multithreading</a></h1>
+<p>The libmpv API is generally fully thread-safe, unless otherwise noted.
+Currently, there is no real advantage in using more than 1 thread to access
+the client API, since everything is serialized through a single lock in the
+playback core.</p>
+
+<h1 id='basic-environment-requirements' class='section-header'><a href='#basic-environment-requirements'>Basic environment requirements</a></h1>
+<p>This documents basic requirements on the C environment. This is especially
+important if mpv is used as library with <code>mpv_create()</code>, such as with this mpv-rs crate.</p>
+
+<ul>
+<li>The <code>LC_NUMERIC</code> locale category must be set to &quot;C&quot;. If your program calls
+setlocale(), be sure not to use <code>LC_ALL</code>, or if you do, reset <code>LC_NUMERIC</code>
+to its sane default: <code>setlocale(LC_NUMERIC, &quot;C&quot;)</code>.</li>
+<li>If a X11 based VO is used, mpv will set the xlib error handler. This error
+handler is process-wide, and there&#39;s no proper way to share it with other
+xlib users within the same process. This might confuse GUI toolkits.</li>
+<li>mpv uses some other libraries that are not library-safe, such as Fribidi
+(used through libass), ALSA, FFmpeg, and possibly more.</li>
+<li>The FPU precision must be set at least to double precision.</li>
+<li>On Windows, mpv will call <code>timeBeginPeriod(1)</code>.</li>
+<li>On UNIX, every <code>mpv_initialize()</code> call will block SIGPIPE. This is done
+because FFmpeg makes unsafe use of OpenSSL and GnuTLS, which can raise
+this signal under certain circumstances. Once these libraries (or FFmpeg)
+are fixed, libmpv will not block the signal anymore.</li>
+<li>On memory exhaustion, mpv will kill the process.</li>
+</ul>
+
+<h1 id='encoding-of-filenames' class='section-header'><a href='#encoding-of-filenames'>Encoding of filenames</a></h1>
+<p>Like Rust, libmpv uses UTF-8 everywhere.</p>
+
+<p>On OS X, filenames and other strings taken/returned by libmpv can have
+inconsistent unicode normalization. This can sometimes lead to problems.
+You have to hope for the best.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.MpvHandler.html'
+                                  title='mpv::MpvHandler'>MpvHandler</a></td>
+                           <td class='docblock short'>
+                                <p>The main struct of the mpv-rs crate</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.MpvHandlerBuilder.html'
+                                  title='mpv::MpvHandlerBuilder'>MpvHandlerBuilder</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.MpvHandlerWithGl.html'
+                                  title='mpv::MpvHandlerWithGl'>MpvHandlerWithGl</a></td>
+                           <td class='docblock short'>
+                                <p>This struct is a decorator of <code>MpvHandler</code>, and can use all the functions from <code>MpvHandler</code>.
+It is only used when you must embed mpv somewhere else using openGL.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.OsdString.html'
+                                  title='mpv::OsdString'>OsdString</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.EndFileReason.html'
+                                  title='mpv::EndFileReason'>EndFileReason</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.Error.html'
+                                  title='mpv::Error'>Error</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.Event.html'
+                                  title='mpv::Event'>Event</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.Format.html'
+                                  title='mpv::Format'>Format</a></td>
+                           <td class='docblock short'>
+                                <p>Event replies <code>GetPropertyReply</code> and <code>PropertyChange</code> will answer this object.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.LogLevel.html'
+                                  title='mpv::LogLevel'>LogLevel</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.SubApi.html'
+                                  title='mpv::SubApi'>SubApi</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.MpvFormat.html'
+                                  title='mpv::MpvFormat'>MpvFormat</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.client_api_version.html'
+                                  title='mpv::client_api_version'>client_api_version</a></td>
+                           <td class='docblock short'>
+                                <p>Returns the <code>MPV_CLIENT_API_VERSION</code> the mpv source has been compiled with
+as <code>(major_v,minor_v)</code></p>
+                           </td>
+                       </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.Result.html'
+                                  title='mpv::Result'>Result</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.mpv_opengl_cb_get_proc_address_fn.html'
+                                  title='mpv::mpv_opengl_cb_get_proc_address_fn'>mpv_opengl_cb_get_proc_address_fn</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "mpv";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

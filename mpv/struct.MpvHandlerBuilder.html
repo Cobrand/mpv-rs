@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `MpvHandlerBuilder` struct in crate `mpv`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, MpvHandlerBuilder">
+
+    <title>mpv::MpvHandlerBuilder - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>mpv</a></p><script>window.sidebarCurrent = {name: 'MpvHandlerBuilder', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>mpv</a>::<wbr><a class='struct' href=''>MpvHandlerBuilder</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-892' class='srclink' href='../src/mpv/mpv_handler.rs.html#35-37' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct MpvHandlerBuilder {
+    // some fields omitted
+}</pre><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../mpv/struct.MpvHandlerBuilder.html' title='mpv::MpvHandlerBuilder'>MpvHandlerBuilder</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-894' class='srclink' href='../src/mpv/mpv_handler.rs.html#45-158' title='goto source code'>[src]</a></span></h3>
+<div class='docblock'><p>A must-use <code>MpvHandler</code> builder.</p>
+
+<ul>
+<li><strong>Step 1</strong> : call <code>MpvHandler::new()</code> to create a Builder.</li>
+<li><strong>Step 2</strong> : Add options to your player</li>
+<li><strong>Step 3</strong> : Finish creating your <code>MpvHandler</code>, either with <code>build()</code> or <code>build_with_gl(...)</code></li>
+</ul>
+</div><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; <a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;Self&gt;</code></h4>
+<div class='docblock'><p>Returns a std::Result that contains an MpvHandlerBuilder if successful,
+or an Error is the creation failed. Currently, errors can happen in the following
+situations :
+        - out of memory
+        - LC_NUMERIC is not set to &quot;C&quot; (see general remarks)</p>
+</div><h4 id='method.set_option' class='method'><code>fn <a href='#method.set_option' class='fnname'>set_option</a>&lt;T:&nbsp;<a class='trait' href='../mpv/trait.MpvFormat.html' title='mpv::MpvFormat'>MpvFormat</a>&gt;(&amp;mut self, property: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>, option: T) -&gt; <a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<div class='docblock'><p>All options for your mpv player should be set on this step</p>
+
+<h1 id='example' class='section-header'><a href='#example'>Example</a></h1>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>mpv_builder</span> <span class='op'>=</span> <span class='ident'>mpv</span>::<span class='ident'>MpvHandlerBuilder</span>::<span class='ident'>new</span>().<span class='ident'>expect</span>(<span class='string'>&quot;Failed to init MPV builder&quot;</span>);
+<span class='ident'>mpv_builder</span>.<span class='ident'>set_option</span>(<span class='string'>&quot;sid&quot;</span>,<span class='string'>&quot;no&quot;</span>).<span class='ident'>expect</span>(<span class='string'>&quot;Failed to set option &#39;sid&#39; to &#39;no&#39;&quot;</span>);
+<span class='comment'>// set other options</span>
+<span class='comment'>// Build the MpvHandler later</span></pre>
+</div><h4 id='method.try_hardware_decoding' class='method'><code>fn <a href='#method.try_hardware_decoding' class='fnname'>try_hardware_decoding</a>(&amp;mut self) -&gt; <a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<div class='docblock'><p>shortcut for <code>set_option(&quot;hwdec&quot;,&quot;auto&quot;)</code></p>
+
+<p>If it is available, the playing will try hardware decoding</p>
+</div><h4 id='method.build' class='method'><code>fn <a href='#method.build' class='fnname'>build</a>(self) -&gt; <a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;<a class='struct' href='../mpv/struct.MpvHandler.html' title='mpv::MpvHandler'>MpvHandler</a>&gt;</code></h4>
+<div class='docblock'><p>Finish creating your player. It will spawn a new window on your window manager.
+Note that it returns a Box of MpvHandler because it needs to be allocated on the heap;
+The Rust MpvHandler gives its own pointer the the C mpv API, and moving the MpvHandler
+within the stack is forbidden in that case.</p>
+</div><h4 id='method.build_with_gl' class='method'><code>fn <a href='#method.build_with_gl' class='fnname'>build_with_gl</a>(self, get_proc_address: <a class='type' href='../mpv/type.mpv_opengl_cb_get_proc_address_fn.html' title='mpv::mpv_opengl_cb_get_proc_address_fn'>mpv_opengl_cb_get_proc_address_fn</a>, get_proc_address_ctx: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut </a><a class='enum' href='https://doc.rust-lang.org/nightly/std/os/raw/enum.c_void.html' title='std::os::raw::c_void'>c_void</a>) -&gt; <a class='type' href='../mpv/type.Result.html' title='mpv::Result'>Result</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html' title='alloc::boxed::Box'>Box</a>&lt;<a class='struct' href='../mpv/struct.MpvHandlerWithGl.html' title='mpv::MpvHandlerWithGl'>MpvHandlerWithGl</a>&gt;&gt;</code></h4>
+<div class='docblock'><p>Finish creating your player, using a custom opengl instance. It will <strong>not</strong> spawn a new,
+window on your window manager, but instead use the given opengl context to draw the video.</p>
+
+<p>An option of an &#39;extern &quot;C&quot;&#39; function must be passed as a parameter,
+which fullfills the role of get_proc_address.
+An arbitrary opaque user context which will be passed to the
+get_proc_address callback must also be sent.</p>
+
+<h1 id='errors' class='section-header'><a href='#errors'>Errors</a></h1>
+<ul>
+<li>MPV_ERROR_UNSUPPORTED: the OpenGL version is not supported
+                     (or required extensions are missing)</li>
+</ul>
+
+<p>For additional information, see examples/sdl2.rs for a basic implementation with a sdl2 opengl context</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "mpv";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>
