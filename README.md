@@ -9,6 +9,10 @@ safe libmpv bindings for Rust.
 The crate is a safe libmpv API binding in Rust. For more info about mpv,
 see [here](https://github.com/mpv-player/mpv).
 
+Online documentation for version 0.2.1 (19 July 2016) of this crate is available [at this location](http://cobrand.github.io/mpv-rs/mpv/)
+
+If the documentation is outdated and/or the crate is outdated (major changes to master), please submit an issue.
+
 # Installing
 
     [dependencies]
