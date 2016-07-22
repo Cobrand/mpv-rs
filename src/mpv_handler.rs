@@ -389,7 +389,7 @@ impl MpvHandler {
     /// See `mpv_get_time_us`.
     pub fn get_time_us(&self) -> i64 {
         unsafe {
-            mpv_get_time_us(self.handle)
+            mpv_get_time_us(self.handle) as i64
         }
     }
 }
