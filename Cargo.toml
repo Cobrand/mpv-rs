@@ -7,7 +7,7 @@ homepage = "https://github.com/Cobrand/mpv-rs"
 repository = "https://github.com/Cobrand/mpv-rs"
 
 keywords = ["mpv", "video","player","media","binding"]
-license = "Zlib"
+license = "MIT/Apache-2.0"
 
 [dependencies]
 log = "0.3"

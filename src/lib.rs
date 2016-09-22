@@ -15,7 +15,7 @@
 //! using mplayer in slave mode is apparently tolerated, and the libmpv
 //! API used by this crate is basically equivalent to slave mode.
 //!
-//! As for this crate itself, it is licensed under the zlib license.
+//! As for this crate itself, it is licensed under the dual MIT / Apache-2.0 license.
 //!
 //! # Additional Documentation
 //!

@@ -105,6 +105,5 @@ not from the mpv player itself.
 
 mpv is globally licensed under GPLv2+
 (see [here](https://github.com/mpv-player/mpv#license)), but this crate is
-licensed under the zlib license.
+licensed under the MIT/Apache-2.0 (at your option).
 
-Relicensing is possible if it can be properly justified for whatever reason.
