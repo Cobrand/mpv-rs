@@ -105,9 +105,7 @@ fn sdl_example(video_path: &Path) {
                 };
             }
             let (width, height) = renderer.window().unwrap().size();
-            if mpv.is_update_available(){
-                mpv.draw(0, width as i32, -(height as i32)).expect("Failed to draw on SDL2 window");
-            }
+            mpv.draw(0, width as i32, -(height as i32)).expect("Failed to draw on SDL2 window");
             renderer.window().unwrap().gl_swap_window();
         }
     }else{
