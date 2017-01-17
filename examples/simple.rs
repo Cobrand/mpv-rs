@@ -37,13 +37,17 @@ fn simple_example(video_path: &Path) {
                 // the event loop
                 println!("RECEIVED EVENT : {:?}", event);
                 match event {
-                    mpv::Event::Shutdown => {
+                    // Shutdown will be triggered when the window is explicitely closed,
+                    // while Idle will be triggered when the queue will end
+                    mpv::Event::Shutdown | mpv::Event::Idle => {
                         break 'main;
                     }
                     _ => {}
                 };
             }
         }
+
+        println!("Simple mpv-rs example shutting down");
     } else {
         println!("A file is required; {} is not a valid file",
                  video_path.to_str().unwrap());
