@@ -205,7 +205,7 @@ impl<'a> Format<'a> {
 
 pub trait MpvFormat {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,f:F);
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> Self;
+    fn get_from_c_void<F : FnMut(*mut c_void)>(f: F) -> Self;
     fn get_mpv_format() -> MpvInternalFormat ;
 }
 
@@ -216,7 +216,7 @@ impl MpvFormat for f64 {
         f(pointer)
     }
 
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> f64 {
+    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f: F) -> f64 {
         let mut ret_value = 0.0;
         let pointer = &mut ret_value as *mut _ as *mut c_void;
         f(pointer);
