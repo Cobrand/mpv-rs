@@ -5,6 +5,7 @@ authors = ["Cobrand <cobrandw@gmail.com>","yamakaky"]
 description = "safe mpv bindings for Rust"
 homepage = "https://github.com/Cobrand/mpv-rs"
 repository = "https://github.com/Cobrand/mpv-rs"
+documentation = "https://docs.rs/mpv/"
 
 keywords = ["mpv", "video","player","media","binding"]
 license = "MIT/Apache-2.0"
@@ -15,5 +16,5 @@ enum_primitive = "0.1"
 num = "0.1"
 
 [dev-dependencies]
-sdl2 = "0.23"
-sdl2-sys = "0.23"
+sdl2 = "0.27"
+sdl2-sys = "0.27"
