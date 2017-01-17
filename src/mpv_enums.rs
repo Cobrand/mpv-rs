@@ -203,6 +203,22 @@ impl<'a> Format<'a> {
     }
 }
 
+/// This trait is meant to represent which types are allowed
+/// to be received and sent through diverse mpv functions,
+/// such as set_option, get_property, ...
+///
+/// # Equivalences
+///
+/// * `MPV_FORMAT_DOUBLE` : `f64`
+/// * `MPV_FORMAT_INT64` : `i64`
+/// * `MPV_FORMAT_OSD_STRING` : [`OsdString`](struct.OsdString.html)
+/// * `MPV_FORMAT_STRING` : `&'a str`
+/// * `MPV_FORMAT_BOOL` : `bool`
+/// * `MPV_FORMAT_NODE` : unimplemented for now
+/// * `MPV_FORMAT_NODE_ARRAY` : unimplemented
+/// * `MPV_FORMAT_BYTE_ARRAY` : unimplemented, expected &'a [u8]
+///
+
 pub trait MpvFormat {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,f:F);
     fn get_from_c_void<F : FnMut(*mut c_void)>(f: F) -> Self;
