@@ -19,7 +19,7 @@ unsafe extern "C" fn get_proc_address(arg: *mut c_void,
     arg.gl_get_proc_address(name) as *mut c_void
 }
 
-fn sdl_example(video_path: &Path) {
+fn sdl_example(video_path: &str) {
     let mut opengl_driver : Option<i32> = None ;
     info!("Detecting drivers ...");
     // SDL drivers are counted from 0
@@ -66,10 +66,8 @@ fn sdl_example(video_path: &Path) {
         // When we will pause later, an event PropertyChange will be sent with userdata 5
         mpv.observe_property::<bool>("pause",5).unwrap();
 
-        let video_path = video_path.to_str().expect("Expected a string for Path, got None");
-
         // Send a command synchronously, telling the libmpv core to load a file
-        mpv.command(&["loadfile", video_path as &str])
+        mpv.command(&["loadfile", video_path])
            .expect("Error loading file");
 
         let mut event_pump = sdl_context.event_pump().expect("Failed to create event_pump");
@@ -116,14 +114,8 @@ fn sdl_example(video_path: &Path) {
 fn main() {
     let args: Vec<_> = env::args().collect();
     if args.len() < 2 {
-        println!("Usage: ./sdl [any mp4, avi, mkv, ... file]");
+        println!("Usage: ./sdl [any mp4, avi, mkv, ... file or http(s) link]");
     } else {
-        let path: &Path = Path::new(&args[1]);
-        if path.is_file() {
-            sdl_example(path);
-        } else {
-            println!("A file is required; {} is not a valid file",
-                     path.to_str().unwrap());
-        }
+        sdl_example(&args[1]);
     }
 }
