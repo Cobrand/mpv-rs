@@ -17,6 +17,7 @@ use std::ops::{Deref,DerefMut};
 ///
 /// Almost every function from the libmpv API needs a context, which is stored in this struct.
 ///
+#[derive(Debug)]
 pub struct MpvHandler {
     handle: *mut mpv_handle,
 }
@@ -26,12 +27,14 @@ pub struct MpvHandler {
 /// This struct is a decorator of `MpvHandler`, and can use all the functions from `MpvHandler`.
 /// It is only used when you must embed mpv somewhere else using openGL.
 ///
+#[derive(Debug)]
 pub struct MpvHandlerWithGl {
     mpv_handler:     MpvHandler,
     gl_context:      *mut mpv_opengl_cb_context,
     update_available:AtomicBool
 }
 
+#[derive(Debug)]
 pub struct MpvHandlerBuilder {
     handle: *mut mpv_handle,
 }
