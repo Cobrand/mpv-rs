@@ -302,6 +302,12 @@ impl<'a> MpvFormat for &'a str {
     fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> &'a str {
         let mut char_ptr = ptr::null_mut() as *mut c_void;
         f(&mut char_ptr as *mut *mut c_void as *mut c_void);
+        if char_ptr.is_null() {
+            // if this is still a nullptr (like, in an error)
+            // the code below will segfault
+            // since it runs *before* checking for an mpv error
+            return "";
+        }
         let return_str = unsafe {
             CStr::from_ptr(char_ptr as *mut c_char)
                  .to_str()
@@ -328,6 +334,12 @@ impl<'a> MpvFormat for OsdString<'a> {
     fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> OsdString<'a> {
         let mut char_ptr = ptr::null_mut() as *mut c_void;
         f(&mut char_ptr as *mut *mut c_void as *mut c_void);
+        if char_ptr.is_null() {
+            // if this is still a nullptr (like, in an error)
+            // the code below will segfault
+            // since it runs *before* checking for an mpv error
+            return OsdString{string:""};
+        }
         let return_str = unsafe {
             CStr::from_ptr(char_ptr as *mut c_char)
                  .to_str()
