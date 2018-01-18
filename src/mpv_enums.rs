@@ -148,7 +148,7 @@ pub fn to_event<'a>(event_id:MpvEventId,
 #[derive(Debug)]
 pub enum Format<'a>{
     Flag(bool),
-    Str(&'a str),
+    String(String),
     Double(f64),
     Int(i64),
     OsdStr(&'a str)
@@ -158,7 +158,7 @@ impl<'a> Format<'a> {
     pub fn get_mpv_format(&self) -> MpvInternalFormat {
         match *self {
             Format::Flag(_) => MpvInternalFormat::MPV_FORMAT_FLAG,
-            Format::Str(_) => MpvInternalFormat::MPV_FORMAT_STRING,
+            Format::String(_) => MpvInternalFormat::MPV_FORMAT_STRING,
             Format::Double(_) => MpvInternalFormat::MPV_FORMAT_DOUBLE,
             Format::Int(_) => MpvInternalFormat::MPV_FORMAT_INT64,
             Format::OsdStr(_) => MpvInternalFormat::MPV_FORMAT_OSD_STRING,
@@ -174,10 +174,10 @@ impl<'a> Format<'a> {
             },
             MpvInternalFormat::MPV_FORMAT_STRING => {
                 let char_ptr = unsafe {*(pointer as *mut *mut c_char)};
-                Format::Str(unsafe {
+                Format::String(unsafe {
                     CStr::from_ptr(char_ptr)
-                         .to_str()
-                         .unwrap()
+                         .to_string_lossy()
+                        .to_string()
                 })
                 // TODO : mpv_free
             },
@@ -290,30 +290,29 @@ impl MpvFormat for bool {
     }
 }
 
-impl<'a> MpvFormat for &'a str {
+impl MpvFormat for String {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let string = ffi::CString::new(*self).unwrap();
+        let string = ffi::CString::new(self.clone().into_bytes()).unwrap();
         let ptr = string.as_ptr();
         // transmute needed for *const -> *mut
         // Should be ok since mpv doesn't modify *ptr
         f(unsafe {mem::transmute(&ptr)})
     }
 
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> &'a str {
+    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> String {
         let mut char_ptr = ptr::null_mut() as *mut c_void;
         f(&mut char_ptr as *mut *mut c_void as *mut c_void);
         if char_ptr.is_null() {
             // if this is still a nullptr (like, in an error)
             // the code below will segfault
             // since it runs *before* checking for an mpv error
-            return "";
+            return "".to_string();
         }
-        let return_str = unsafe {
-            CStr::from_ptr(char_ptr as *mut c_char)
-                 .to_str()
-                 .unwrap()
-        };
-        unsafe {mpv_free(char_ptr)};
+        let cstr = unsafe {CStr::from_ptr(char_ptr as *mut c_char)};
+        let return_str = cstr.to_string_lossy().to_string();
+        unsafe {
+            mpv_free(cstr.as_ptr() as *mut c_void);
+        }
         return_str
     }
 
