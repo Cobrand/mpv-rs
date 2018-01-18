@@ -24,13 +24,13 @@ impl fmt::Display for MpvEventId {
 }
 
 #[derive(Debug)]
-pub enum Event<'a> {
+pub enum Event {
     /// Received when the player is shutting down
     Shutdown,
     /// *Has not been tested*, received when explicitly asked to MPV
     LogMessage{prefix:&'static str,level:&'static str,text:&'static str,log_level:LogLevel},
     /// Received when using get_property_async
-    GetPropertyReply{name:&'static str,result:Result<Format<'a>>,reply_userdata:u32},
+    GetPropertyReply{name:&'static str,result:Result<Format>,reply_userdata:u32},
     /// Received when using set_property_async
     SetPropertyReply(Result<()>,u32),
     /// Received when using command_async
@@ -60,7 +60,7 @@ pub enum Event<'a> {
     Seek,
     PlaybackRestart,
     /// Received when used with observe_property
-    PropertyChange{name:&'static str,change:Format<'a>,reply_userdata:u32},
+    PropertyChange{name:&'static str,change:Format,reply_userdata:u32},
     ChapterChange,
     /// Received when the Event Queue is full
     QueueOverflow,
@@ -71,7 +71,7 @@ pub enum Event<'a> {
 pub fn to_event<'a>(event_id:MpvEventId,
                 error: c_int,
                 reply_userdata: c_ulong,
-                data:*mut c_void) -> Option<Event<'a>> {
+                data:*mut c_void) -> Option<Event> {
     let userdata = reply_userdata as u32 ;
     match event_id {
         MpvEventId::MPV_EVENT_NONE                  => None,
@@ -146,15 +146,15 @@ pub fn to_event<'a>(event_id:MpvEventId,
 /// * `ByteArray`
 
 #[derive(Debug)]
-pub enum Format<'a>{
+pub enum Format {
     Flag(bool),
     String(String),
     Double(f64),
     Int(i64),
-    OsdStr(&'a str)
+    OsdStr(String)
 }
 
-impl<'a> Format<'a> {
+impl Format {
     pub fn get_mpv_format(&self) -> MpvInternalFormat {
         match *self {
             Format::Flag(_) => MpvInternalFormat::MPV_FORMAT_FLAG,
@@ -177,7 +177,7 @@ impl<'a> Format<'a> {
                 Format::String(unsafe {
                     CStr::from_ptr(char_ptr)
                          .to_string_lossy()
-                        .to_string()
+                         .to_string()
                 })
                 // TODO : mpv_free
             },
@@ -185,8 +185,8 @@ impl<'a> Format<'a> {
                 let char_ptr = unsafe{ *(pointer as *mut *mut c_char)};
                 Format::OsdStr(unsafe {
                     CStr::from_ptr(char_ptr)
-                         .to_str()
-                         .unwrap()
+                         .to_string_lossy()
+                         .to_string()
                 })
                 // TODO : mpv_free
             },
@@ -321,30 +321,29 @@ impl MpvFormat for String {
     }
 }
 
-impl<'a> MpvFormat for OsdString<'a> {
+impl MpvFormat for OsdString {
     fn call_as_c_void<F : FnMut(*mut c_void)>(&self,mut f:F){
-        let string = ffi::CString::new(self.string).unwrap();
+        let string = ffi::CString::new(self.string.clone().into_bytes()).unwrap();
         let ptr = string.as_ptr();
         // transmute needed for *const -> *mut
         // Should be ok since mpv doesn't modify *ptr
         f(unsafe {mem::transmute(&ptr)})
     }
 
-    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> OsdString<'a> {
+    fn get_from_c_void<F : FnMut(*mut c_void)>(mut f:F) -> OsdString {
         let mut char_ptr = ptr::null_mut() as *mut c_void;
         f(&mut char_ptr as *mut *mut c_void as *mut c_void);
         if char_ptr.is_null() {
             // if this is still a nullptr (like, in an error)
             // the code below will segfault
             // since it runs *before* checking for an mpv error
-            return OsdString{string:""};
+            return OsdString{string:String::new()};
         }
-        let return_str = unsafe {
-            CStr::from_ptr(char_ptr as *mut c_char)
-                 .to_str()
-                 .unwrap()
-        };
-        unsafe {mpv_free(mem::transmute(char_ptr))};
+        let cstr = unsafe {CStr::from_ptr(char_ptr as *mut c_char)};
+        let return_str = cstr.to_string_lossy().to_string();
+        unsafe {
+            mpv_free(cstr.as_ptr() as *mut c_void);
+        }
         OsdString{string:return_str}
     }
 

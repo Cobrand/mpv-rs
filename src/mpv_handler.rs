@@ -350,7 +350,7 @@ impl MpvHandler {
     ///
     /// Will panic if a null pointer is received from the libmpv API (should never happen)
 
-    pub fn wait_event<'a>(&mut self,timeout:f64) -> Option<Event<'a>> {
+    pub fn wait_event<'a>(&mut self,timeout:f64) -> Option<Event> {
         let event = unsafe {
             let ptr = mpv_wait_event(self.handle, timeout);
             if ptr.is_null() {
