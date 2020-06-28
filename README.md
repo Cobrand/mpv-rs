@@ -1,4 +1,8 @@
 
+# DEPRECATED USE LIBMPV-RS INSTEAD
+
+https://crates.io/crates/libmpv
+
 # mpv-rs
 
 safe libmpv bindings for Rust.
