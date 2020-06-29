@@ -91,7 +91,7 @@ impl MpvHandlerBuilder {
     ///
     /// If it is available, the playing will try hardware decoding
     pub fn try_hardware_decoding(&mut self) -> Result<()> {
-        self.set_option("hwdec","auto")
+        self.set_option("hwdec","auto".to_string())
     }
 
     ///
@@ -127,7 +127,7 @@ impl MpvHandlerBuilder {
     pub fn build_with_gl(mut self,
                          get_proc_address: mpv_opengl_cb_get_proc_address_fn,
                          get_proc_address_ctx: *mut ::std::os::raw::c_void) -> Result<Box<MpvHandlerWithGl>> {
-        self.set_option("vo", "opengl-cb").expect("Error setting vo option to opengl-cb");
+        self.set_option("vo", "opengl-cb".to_string()).expect("Error setting vo option to opengl-cb");
         let mpv_handler_result = self.build();
         match mpv_handler_result {
             Ok(mpv_handler) => {
@@ -260,11 +260,14 @@ impl MpvHandler {
         let mut ret = 0 ;
         let format = T::get_mpv_format();
         let result = T::get_from_c_void(|ptr:*mut c_void|{
-            ret = unsafe {
-                mpv_get_property(self.handle,
-                                 ffi::CString::new(property).unwrap().as_ptr(),
-                                 format,
-                                 ptr)
+            let property = ffi::CString::new(property).unwrap();
+            {
+                ret = unsafe {
+                    mpv_get_property(self.handle,
+                                     property.as_ptr(),
+                                     format,
+                                     ptr)
+                }
             }
         });
         ret_to_result(ret,result)
@@ -347,7 +350,7 @@ impl MpvHandler {
     ///
     /// Will panic if a null pointer is received from the libmpv API (should never happen)
 
-    pub fn wait_event<'a>(&mut self,timeout:f64) -> Option<Event<'a>> {
+    pub fn wait_event<'a>(&mut self,timeout:f64) -> Option<Event> {
         let event = unsafe {
             let ptr = mpv_wait_event(self.handle, timeout);
             if ptr.is_null() {
