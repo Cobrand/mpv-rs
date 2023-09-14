@@ -155,7 +155,6 @@ mod mpv_types;
 pub use mpv_error::{Error,Result};
 pub use mpv_handler::*;
 pub use mpv_enums::{
-    SubApi,
     LogLevel,
     EndFileReason,
     Event,
@@ -163,7 +162,6 @@ pub use mpv_enums::{
     Format
 };
 pub use mpv_types::* ;
-pub use mpv_gen::mpv_opengl_cb_get_proc_address_fn;
 
 /// Returns the `MPV_CLIENT_API_VERSION` the mpv source has been compiled with
 /// as `(major_v,minor_v)`
