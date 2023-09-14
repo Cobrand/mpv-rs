@@ -4,9 +4,9 @@ use std::mem;
 
 use mpv_error::* ;
 use mpv_types::OsdString;
-use mpv_gen::{mpv_event_name,MpvFormat as MpvInternalFormat,mpv_event_property,mpv_event_end_file,
+use mpv_gen::{mpv_event_name,mpv_format as MpvInternalFormat,mpv_event_property,mpv_event_end_file,
     mpv_event_log_message,mpv_free};
-pub use mpv_gen::{MpvEventId, SubApi, LogLevel, EndFileReason};
+pub use mpv_gen::{mpv_event_id as MpvEventId, mpv_log_level as LogLevel, mpv_end_file_reason as EndFileReason};
 use ::std::os::raw::{c_int,c_void,c_ulong,c_char};
 
 impl MpvEventId {
@@ -41,27 +41,18 @@ pub enum Event<'a> {
     EndFile(Result<EndFileReason>),
     /// Event received when a file has been *loaded*, but has not been started
     FileLoaded,
-    TracksChanged,
-    /// Deprecated
-    TrackSwitched,
     /// Received when the player has no more files to play and is in an idle state
     Idle,
-    /// The player paused playback
-    Pause,
-    /// The player started playback again
-    Unpause,
     Tick,
     /// **Unimplemented**
     ClientMessage,
     VideoReconfig,
     AudioReconfig,
-    MetadataUpdate,
     /// The player changed current position
     Seek,
     PlaybackRestart,
     /// Received when used with observe_property
     PropertyChange{name:&'static str,change:Format<'a>,reply_userdata:u32},
-    ChapterChange,
     /// Received when the Event Queue is full
     QueueOverflow,
     /// Unused event
@@ -99,25 +90,18 @@ pub fn to_event<'a>(event_id:MpvEventId,
         MpvEventId::MPV_EVENT_START_FILE            => Some(Event::StartFile),
         MpvEventId::MPV_EVENT_END_FILE              => {
             let end_file = unsafe {*(data as *mut mpv_event_end_file)};
-            let end_file_reason = EndFileReason::from_i32(end_file.reason).unwrap();
-            let result = match end_file_reason {
+            let result = match end_file.reason {
                 EndFileReason::MPV_END_FILE_REASON_ERROR => Err(Error::from_i32(end_file.error).unwrap()),
-                _ => Ok(end_file_reason)
+                reason => Ok(reason)
             };
             Some(Event::EndFile(result))
         }
         MpvEventId::MPV_EVENT_FILE_LOADED           => Some(Event::FileLoaded),
-        MpvEventId::MPV_EVENT_TRACKS_CHANGED        => Some(Event::TracksChanged),
-        MpvEventId::MPV_EVENT_TRACK_SWITCHED        => Some(Event::TrackSwitched),
         MpvEventId::MPV_EVENT_IDLE                  => Some(Event::Idle),
-        MpvEventId::MPV_EVENT_PAUSE                 => Some(Event::Pause),
-        MpvEventId::MPV_EVENT_UNPAUSE               => Some(Event::Unpause),
         MpvEventId::MPV_EVENT_TICK                  => Some(Event::Tick),
-        MpvEventId::MPV_EVENT_SCRIPT_INPUT_DISPATCH => Some(Event::Unused),
         MpvEventId::MPV_EVENT_CLIENT_MESSAGE        => unimplemented!(),
         MpvEventId::MPV_EVENT_VIDEO_RECONFIG        => Some(Event::VideoReconfig),
         MpvEventId::MPV_EVENT_AUDIO_RECONFIG        => Some(Event::AudioReconfig),
-        MpvEventId::MPV_EVENT_METADATA_UPDATE       => Some(Event::MetadataUpdate),
         MpvEventId::MPV_EVENT_SEEK                  => Some(Event::Seek),
         MpvEventId::MPV_EVENT_PLAYBACK_RESTART      => Some(Event::PlaybackRestart),
         MpvEventId::MPV_EVENT_PROPERTY_CHANGE       => {
@@ -130,8 +114,8 @@ pub fn to_event<'a>(event_id:MpvEventId,
             };
             Some(Event::PropertyChange{name:name,change:format_result,reply_userdata:userdata})
         },
-        MpvEventId::MPV_EVENT_CHAPTER_CHANGE        => Some(Event::ChapterChange),
         MpvEventId::MPV_EVENT_QUEUE_OVERFLOW        => Some(Event::QueueOverflow),
+        MpvEventId::MPV_EVENT_HOOK                  => unimplemented!(),
     }
 }
 
