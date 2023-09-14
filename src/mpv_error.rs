@@ -1,9 +1,8 @@
 use std::{result, ffi, fmt, error};
-use std::error::Error as StdError;
 pub use num::FromPrimitive;
 
 use mpv_gen::mpv_error_string;
-pub use mpv_gen::Error;
+pub use mpv_gen::mpv_error as Error;
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -17,7 +16,7 @@ impl error::Error for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} ({:?})", self.description(), self)
+        write!(f, "{} ({:?})", self, self)
     }
 }
 
