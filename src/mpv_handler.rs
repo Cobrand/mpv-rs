@@ -1,14 +1,15 @@
 use mpv_gen::{mpv_command, mpv_command_async, mpv_wait_event, mpv_create, mpv_initialize,
               mpv_terminate_destroy, mpv_handle, mpv_set_option,
-              mpv_set_property, mpv_set_property_async, mpv_get_property,
-              mpv_get_property_async, mpv_opengl_cb_get_proc_address_fn, mpv_get_sub_api,
-              mpv_opengl_cb_uninit_gl, mpv_opengl_cb_init_gl, mpv_opengl_cb_draw,
-              mpv_opengl_cb_context, mpv_observe_property, mpv_unobserve_property,
-              mpv_opengl_cb_set_update_callback, mpv_get_time_us};
+              mpv_set_property, mpv_set_property_async, mpv_get_property, mpv_get_time_us,
+              mpv_get_property_async, mpv_observe_property, mpv_unobserve_property, mpv_render_param, mpv_render_param_type,
+              mpv_opengl_init_params, mpv_render_context_create, mpv_render_context, mpv_render_context_set_update_callback,
+              mpv_render_context_free, mpv_render_context_render, mpv_opengl_fbo, MPV_RENDER_API_TYPE_OPENGL};
 use mpv_enums::*;
 use mpv_error::*;
+use mpv_types::*;
 
 use std::os::raw::c_void;
+use std::ptr::null_mut;
 use std::{ffi, ptr};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::boxed::Box;
@@ -30,7 +31,7 @@ pub struct MpvHandler {
 #[derive(Debug)]
 pub struct MpvHandlerWithGl {
     mpv_handler:     MpvHandler,
-    gl_context:      *mut mpv_opengl_cb_context,
+    render_context: *mut mpv_render_context,
     update_available:AtomicBool
 }
 
@@ -125,38 +126,55 @@ impl MpvHandlerBuilder {
     /// For additional information, see examples/sdl2.rs for a basic implementation with a sdl2 opengl context
     #[must_use]
     pub fn build_with_gl(mut self,
-                         get_proc_address: mpv_opengl_cb_get_proc_address_fn,
+                         get_proc_address: Option<GetProcAddressFn>,
                          get_proc_address_ctx: *mut ::std::os::raw::c_void) -> Result<Box<MpvHandlerWithGl>> {
-        self.set_option("vo", "opengl-cb").expect("Error setting vo option to opengl-cb");
-        let mpv_handler_result = self.build();
-        match mpv_handler_result {
-            Ok(mpv_handler) => {
-                let opengl_ctx = unsafe {
-                    mpv_get_sub_api(mpv_handler.handle,
-                                    SubApi::MPV_SUB_API_OPENGL_CB)
-                } as *mut mpv_opengl_cb_context ;
-                let ret = unsafe {
-                    mpv_opengl_cb_init_gl(opengl_ctx, ptr::null(), get_proc_address, get_proc_address_ctx)
-                };
-                // Actually using the opengl_cb state has to be explicitly requested.
-                // Otherwise, mpv will create a separate platform window.
+        let mpv_handler = self.build()?;
 
-                let mut mpv_handler_with_gl = Box::new(MpvHandlerWithGl {
-                    mpv_handler:      mpv_handler,
-                    gl_context:       opengl_ctx,
-                    update_available: AtomicBool::new(false)
-                });
-
-                // Additional callback
-                unsafe {mpv_opengl_cb_set_update_callback(opengl_ctx,
-                                                          Some(MpvHandlerWithGl::update_draw),
-                                                          mpv_handler_with_gl.as_mut() as *mut MpvHandlerWithGl as *mut c_void)};
-                ret_to_result(ret,mpv_handler_with_gl)
+        let mut opengl_params = mpv_opengl_init_params {
+            get_proc_address,
+            get_proc_address_ctx
+        };
+        let mut render_params: [mpv_render_param; 3] = [
+            mpv_render_param {
+                type_: mpv_render_param_type::MPV_RENDER_PARAM_API_TYPE,
+                data: MPV_RENDER_API_TYPE_OPENGL.as_ptr() as *mut _
             },
-            Err(e) => {
-                Err(e)
+            mpv_render_param {
+                type_: mpv_render_param_type::MPV_RENDER_PARAM_OPENGL_INIT_PARAMS,
+                data: &mut opengl_params as *mut _ as *mut c_void
+            },
+            mpv_render_param {
+                type_: mpv_render_param_type::MPV_RENDER_PARAM_INVALID,
+                data: null_mut()
             }
+        ];
+
+        let mut render_context: *mut mpv_render_context = null_mut();
+        let ret = unsafe {
+            mpv_render_context_create(
+                &mut render_context as *mut _,
+                mpv_handler.handle,
+                &mut render_params as *mut _
+            )
+        };
+        
+        let mut mpv_handler_with_gl = Box::new(MpvHandlerWithGl {
+            mpv_handler,
+            render_context,
+            update_available: AtomicBool::new(false)
+        });
+
+        if ret >= 0 {
+            unsafe {
+                mpv_render_context_set_update_callback(
+                    render_context,
+                    Some(MpvHandlerWithGl::update_draw),
+                    mpv_handler_with_gl.as_mut() as *mut MpvHandlerWithGl as *mut c_void
+                )
+            };
         }
+
+        ret_to_result(ret, mpv_handler_with_gl)
     }
 }
 
@@ -201,7 +219,25 @@ impl MpvHandlerWithGl {
     ///
     pub fn draw(&mut self, fbo: i32, width: i32, heigth: i32) -> Result<()> {
         self.update_available.store(false,Ordering::Relaxed) ;
-        let ret = unsafe { mpv_opengl_cb_draw(self.gl_context, fbo, width, heigth) };
+        let ret = unsafe {
+            let mut opengl_params = mpv_opengl_fbo {
+                w: width,
+                h: heigth,
+                fbo,
+                internal_format: 0
+            };
+            let mut render_params: [mpv_render_param; 2] = [
+                mpv_render_param {
+                    type_: mpv_render_param_type::MPV_RENDER_PARAM_OPENGL_FBO,
+                    data: &mut opengl_params as *mut _ as *mut c_void
+                },
+                mpv_render_param {
+                    type_: mpv_render_param_type::MPV_RENDER_PARAM_INVALID,
+                    data: null_mut()
+                }
+            ];
+            mpv_render_context_render(self.render_context, &mut render_params as *mut _)
+        };
         ret_to_result(ret, ())
     }
 
@@ -401,7 +437,7 @@ impl Drop for MpvHandlerWithGl {
     fn drop(&mut self) {
         unsafe {
             // careful : always uninit gl before terminate_destroy mpv
-            mpv_opengl_cb_uninit_gl(self.gl_context);
+            mpv_render_context_free(self.render_context);
         }
     }
 }
